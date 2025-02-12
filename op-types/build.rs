@@ -1,9 +1,30 @@
+use std::env;
 use std::path::PathBuf;
 use std::{fs, process::Command};
-
+use openapi_to_jsonschema;
 use schemars::schema::RootSchema;
 
 fn main() {
+    let definitions_path = env::var("OPENAPI_DEFINITIONS_PATH")
+        .unwrap_or_else(|_| "../openapi-definitions".to_string());
+
+    let auth_server_spec = format!("{}/auth-server.yaml", definitions_path);
+    let resource_server_spec =   format!("{}/resource-server.yaml", definitions_path);
+    let wallet_address_server_spec =    format!("{}/wallet-address-server.yaml", definitions_path);
+
+    let conversions = [
+        (auth_server_spec.as_str(), "./generated/auth-server-schema.json"),
+        (resource_server_spec.as_str(), "./generated/resource-server-schema.json"),
+        (wallet_address_server_spec.as_str(), "./generated/wallet-address-server-schema.json"),
+    ];
+
+    let shared_schemas_path: String = format!("{}/schemas.yaml", definitions_path);
+
+    
+    openapi_to_jsonschema::convert_openapi_to_jsonschema_with_shared_schema(&conversions, &shared_schemas_path)
+        .unwrap_or_else(|e| panic!("Conversion failed: {}", e));
+    
+
     let schemas = [
         "./generated/auth-server-schema.json",
         "./generated/resource-server-schema.json",
