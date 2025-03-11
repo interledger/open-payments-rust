@@ -2,5 +2,5 @@
 resolver = "2"
 members = [
     "openapi-to-jsonschema", 
-    "op-types",
+    "op-types", "op-client", "http-signature-utils",
 ]
