@@ -88,7 +88,15 @@ fn create_signature_base_string(
 pub async fn create_signature_headers(
     options: SignOptions<'_>,
 ) -> Result<SignatureHeaders, SignatureError> {
-    let components = vec!["@method", "@target-uri", "content-type"];
+    let mut components = vec!["@method", "@target-uri", "content-type"];
+
+    if options.request.headers().get("Authorization").is_some() {
+        components.push("authorization");
+    }
+
+    if options.request.body().is_some() {
+        components.extend_from_slice(&["content-digest", "content-length"]);
+    }
     let created = chrono::Utc::now().timestamp();
 
     let signature_base =
