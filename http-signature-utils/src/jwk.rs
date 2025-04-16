@@ -45,7 +45,7 @@ impl Jwk {
         };
 
         let public_key = signing_key.verifying_key();
-        let x = STANDARD.encode(public_key.to_bytes());
+        let x = URL_SAFE_NO_PAD.encode(public_key.to_bytes());
 
         Ok(Self {
             alg: "EdDSA".to_string(),

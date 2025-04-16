@@ -2,7 +2,6 @@ use crate::config::ClientConfig;
 use anyhow::{Context, Result};
 use ed25519_dalek::SigningKey;
 use http_signature_utils::jwk::Jwk;
-use log::info;
 use reqwest::Client as ReqwestClient;
 
 pub trait BaseClient {
@@ -32,7 +31,6 @@ impl AuthenticatedOpenPaymentsClient {
         if let Some(ref jwks_path) = config.jwks_path {
             let jwks_json = Jwk::generate_jwks_json(&signing_key, &config.key_id);
             Jwk::save_jwks(&jwks_json, jwks_path).with_context(|| "Failed to save JWKS")?;
-            info!("JWKS saved to {:?}", jwks_path);
         }
 
         Ok(Self {

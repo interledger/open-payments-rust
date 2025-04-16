@@ -109,7 +109,6 @@ pub mod authenticated {
             Self { client }
         }
 
-        //TODO Move to unauthenticated client
         pub async fn request(&self, auth_url: &str, grant: &GrantRequest) -> Result<AccessToken> {
             request_grant(self.client, auth_url, grant).await
         }

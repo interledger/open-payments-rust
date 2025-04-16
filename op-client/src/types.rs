@@ -43,8 +43,13 @@ pub mod grant {
     use serde::Serialize;
 
     #[derive(Serialize)]
+    pub struct AccessTokenRequest {
+        pub access: op_types::auth::Access,
+    }
+
+    #[derive(Serialize)]
     pub struct GrantRequest {
-        pub access_token: AccessToken,
+        pub access_token: AccessTokenRequest,
         pub client: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub interact: Option<Interact>,
