@@ -10,7 +10,6 @@ use op_types::{
 use open_payments_snippets_rust::utils::{
     create_authenticated_client, get_env_var, init_logging, load_env,
 };
-use serde_json;
 use uuid::Uuid;
 
 #[tokio::main]
