@@ -9,7 +9,7 @@ Based on `https://www.npmjs.com/package/@interledger/http-signature-utils`
 - HTTP message signing with Ed25519
 - Signature validation
 - Header management
-- Key management utilities (to be added)
+- Key management utilities
 
 ## Installation
 
