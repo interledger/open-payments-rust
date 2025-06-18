@@ -39,7 +39,7 @@ impl<'a, C> HttpRequest<'a, C> {
 pub type AuthenticatedRequest<'a> = HttpRequest<'a, AuthenticatedOpenPaymentsClient>;
 pub type UnauthenticatedRequest<'a> = HttpRequest<'a, Client>;
 
-impl<'a> AuthenticatedRequest<'a> {
+impl AuthenticatedRequest<'_> {
     pub async fn build_and_execute<T: DeserializeOwned + 'static>(self) -> Result<T> {
         let mut req = build_request(&self)?;
 
@@ -138,14 +138,14 @@ impl<'a> AuthenticatedRequest<'a> {
     }
 }
 
-impl<'a> UnauthenticatedRequest<'a> {
+impl UnauthenticatedRequest<'_> {
     pub async fn build_and_execute<T: DeserializeOwned + 'static>(self) -> Result<T> {
         let req = build_request(&self)?;
         execute_request(self.client, req).await
     }
 }
 
-impl<'a, C: BaseClient> BaseClient for HttpRequest<'a, C> {
+impl<C: BaseClient> BaseClient for HttpRequest<'_, C> {
     fn http_client(&self) -> &reqwest::Client {
         self.client.http_client()
     }
@@ -161,7 +161,7 @@ fn build_request<C: BaseClient>(req: &HttpRequest<C>) -> Result<reqwest::Request
         builder = builder.body(body.clone());
     }
 
-    Ok(builder.build().map_err(OpClientError::from)?)
+    builder.build().map_err(OpClientError::from)
 }
 
 async fn execute_request<T: DeserializeOwned + 'static>(
@@ -177,11 +177,9 @@ async fn execute_request<T: DeserializeOwned + 'static>(
         )));
     }
 
-    if resp.status() == reqwest::StatusCode::NO_CONTENT {
-        if std::any::TypeId::of::<T>() == std::any::TypeId::of::<()>() {
-            return Ok(serde_json::from_str::<T>("null")
-                .expect("Deserializing unit type from null should never fail"));
-        }
+    if resp.status() == reqwest::StatusCode::NO_CONTENT && std::any::TypeId::of::<T>() == std::any::TypeId::of::<()>() {
+        return Ok(serde_json::from_str::<T>("null")
+            .expect("Deserializing unit type from null should never fail"));
     }
 
     let result: T = resp.json().await.map_err(OpClientError::from)?;

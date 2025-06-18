@@ -62,12 +62,10 @@ async fn test_token_flows() {
 
     test_setup.auth_client.access_token = Some(rotated_token.value);
 
-    let response = test_setup
+    test_setup
         .auth_client
         .token()
         .revoke(&rotated_token.manage)
         .await
         .expect("Failed to revoke token");
-
-    assert_eq!(response, ());
 }

@@ -48,6 +48,12 @@ pub struct UnauthenticatedOpenPaymentsClient {
     pub http_client: ReqwestClient,
 }
 
+impl Default for UnauthenticatedOpenPaymentsClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UnauthenticatedOpenPaymentsClient {
     pub fn new() -> Self {
         Self {
