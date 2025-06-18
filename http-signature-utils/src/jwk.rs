@@ -1,17 +1,15 @@
-use anyhow::{Context, Result};
 use base64::{
-    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
+    engine::general_purpose::URL_SAFE_NO_PAD,
     Engine,
 };
-use ed25519_dalek::{SecretKey, SigningKey, VerifyingKey};
-use pem::parse;
-use pkcs8::{der::Decode, PrivateKeyInfo};
+use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
 use std::path::Path;
 use thiserror::Error;
+use crate::error::{HttpSignatureError, Result};
 
 #[derive(Debug, Error)]
 pub enum JwkError {
@@ -33,9 +31,9 @@ pub struct Jwk {
 }
 
 impl Jwk {
-    pub fn new(key_id: String, private_key: Option<&SigningKey>) -> Result<Self, JwkError> {
+    pub fn new(key_id: String, private_key: Option<&SigningKey>) -> Result<Self> {
         if key_id.trim().is_empty() {
-            return Err(JwkError::EmptyKeyId);
+            return Err(HttpSignatureError::Jwk(JwkError::EmptyKeyId.to_string()));
         }
 
         let signing_key = if let Some(priv_key) = private_key {
@@ -57,38 +55,11 @@ impl Jwk {
         })
     }
 
-    pub fn validate(&self) -> Result<(), JwkError> {
+    pub fn validate(&self) -> Result<()> {
         if self.crv != "Ed25519" || self.kty != "OKP" || self.x.is_empty() {
-            return Err(JwkError::InvalidKeyType);
+            return Err(HttpSignatureError::Jwk(JwkError::InvalidKeyType.to_string()));
         }
         Ok(())
-    }
-
-    //TODO Move to utils?
-    pub fn load_or_generate_key(path: &std::path::Path) -> Result<SigningKey> {
-        if path.exists() {
-            let key_str = std::fs::read_to_string(path)?;
-
-            let pem = parse(key_str).expect("Invalid PEM");
-            assert_eq!(pem.tag(), "PRIVATE KEY");
-
-            let private_key_info = PrivateKeyInfo::from_der(&pem.contents()).expect("Invalid DER");
-
-            let raw = private_key_info.private_key;
-
-            // The private key field inside contains the 32-byte Ed25519 seed
-            let raw_private_key: [u8; 32] =
-                raw[2..].try_into().expect("Invalid private key length");
-
-            let signing_key = SigningKey::from_bytes(&raw_private_key);
-            Ok(signing_key)
-        } else {
-            let mut csprng = OsRng {};
-            let signing_key = SigningKey::generate(&mut csprng);
-            fs::write(path, signing_key.to_bytes())
-                .with_context(|| format!("Writing new key to {:?}", path))?;
-            Ok(signing_key)
-        }
     }
 
     pub fn generate_jwks_json(signing_key: &SigningKey, key_id: &str) -> String {
@@ -109,7 +80,7 @@ impl Jwk {
 
     pub fn save_jwks(jwks_json: &str, jwks_path: &Path) -> Result<()> {
         fs::write(jwks_path, jwks_json)
-            .with_context(|| format!("Writing JWKS to {:?}", jwks_path))?;
+            .map_err(HttpSignatureError::from)?;
         Ok(())
     }
 }
@@ -131,6 +102,6 @@ mod tests {
     #[test]
     fn test_empty_key_id() {
         let result = Jwk::new("".to_string(), None);
-        assert!(matches!(result, Err(JwkError::EmptyKeyId)));
+        assert!(matches!(result, Err(HttpSignatureError::Jwk(_))));
     }
 }

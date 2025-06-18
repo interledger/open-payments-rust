@@ -1,23 +1,21 @@
 use crate::client::{AuthenticatedOpenPaymentsClient, BaseClient};
 use crate::types::{
-    grant::GrantRequest,
-    payments::{IncomingPaymentRequest, OutgoingPaymentRequest},
-    quotes::QuoteRequest,
+    AccessTokenResponse, ContinueResponse, GrantRequest, GrantResponse, IncomingPayment,
+    IncomingPaymentRequest, JsonWebKeySet, ListIncomingPaymentsResponse,
+    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentRequest, Quote, QuoteRequest,
+    WalletAddress,
 };
 use crate::{
-    grant::{continue_grant, request_grant, revoke_grant},
+    Result,
+    grant::{cancel_grant, continue_grant, request_grant},
     payments::{
         complete_incoming_payment, create_incoming_payment, create_outgoing_payment,
         get_incoming_payment, get_outgoing_payment, list_incoming_payments, list_outgoing_payments,
     },
     quotes::{create_quote, get_quote},
     token::{revoke_access_token, rotate_access_token},
-    wallet_address::{get_did_document, get_keys, get_wallet_address},
+    wallet_address::{get_keys, get_wallet_address},
 };
-use anyhow::Result;
-use op_types::auth::AccessToken;
-use op_types::resource::{IncomingPayment, OutgoingPayment, Quote};
-use op_types::wallet_address::{DidDocument, JsonWebKeySet, WalletAddress};
 
 pub mod authenticated {
     use super::*;
@@ -69,8 +67,23 @@ pub mod authenticated {
             complete_incoming_payment(self.client, payment_url).await
         }
 
-        pub async fn list(&self, resource_server_url: &str) -> Result<Vec<IncomingPayment>> {
-            list_incoming_payments(self.client, resource_server_url).await
+        pub async fn list(
+            &self,
+            resource_server_url: &str,
+            wallet_address: &str,
+            cursor: Option<&str>,
+            first: Option<u32>,
+            last: Option<u32>,
+        ) -> Result<ListIncomingPaymentsResponse> {
+            list_incoming_payments(
+                self.client,
+                resource_server_url,
+                wallet_address,
+                cursor,
+                first,
+                last,
+            )
+            .await
         }
     }
 
@@ -91,8 +104,23 @@ pub mod authenticated {
             create_outgoing_payment(self.client, resource_server_url, req_body).await
         }
 
-        pub async fn list(&self, resource_server_url: &str) -> Result<Vec<OutgoingPayment>> {
-            list_outgoing_payments(self.client, resource_server_url).await
+        pub async fn list(
+            &self,
+            resource_server_url: &str,
+            wallet_address: &str,
+            cursor: Option<&str>,
+            first: Option<u32>,
+            last: Option<u32>,
+        ) -> Result<ListOutgoingPaymentsResponse> {
+            list_outgoing_payments(
+                self.client,
+                resource_server_url,
+                wallet_address,
+                cursor,
+                first,
+                last,
+            )
+            .await
         }
 
         pub async fn get(&self, payment_url: &str) -> Result<OutgoingPayment> {
@@ -109,7 +137,7 @@ pub mod authenticated {
             Self { client }
         }
 
-        pub async fn request(&self, auth_url: &str, grant: &GrantRequest) -> Result<AccessToken> {
+        pub async fn request(&self, auth_url: &str, grant: &GrantRequest) -> Result<GrantResponse> {
             request_grant(self.client, auth_url, grant).await
         }
 
@@ -117,12 +145,12 @@ pub mod authenticated {
             &self,
             continue_uri: &str,
             interact_ref: &str,
-        ) -> Result<AccessToken> {
+        ) -> Result<ContinueResponse> {
             continue_grant(self.client, continue_uri, interact_ref).await
         }
 
-        pub async fn revoke(&self, revoke_url: &str) -> Result<()> {
-            revoke_grant(self.client, revoke_url).await
+        pub async fn cancel(&self, continue_uri: &str) -> Result<()> {
+            cancel_grant(self.client, continue_uri).await
         }
     }
 
@@ -135,12 +163,12 @@ pub mod authenticated {
             Self { client }
         }
 
-        pub async fn rotate(&self, auth_url: &str, token: &str) -> Result<AccessToken> {
-            rotate_access_token(self.client, auth_url, token).await
+        pub async fn rotate(&self, auth_url: &str) -> Result<AccessTokenResponse> {
+            rotate_access_token(self.client, auth_url).await
         }
 
-        pub async fn revoke(&self, auth_url: &str, token: &str) -> Result<()> {
-            revoke_access_token(self.client, auth_url, token).await
+        pub async fn revoke(&self, auth_url: &str) -> Result<()> {
+            revoke_access_token(self.client, auth_url).await
         }
     }
 }
@@ -165,12 +193,8 @@ pub mod unauthenticated {
             get_keys(self.client.http_client(), wallet).await
         }
 
-        #[deprecated(
-            since = "0.1.0",
-            note = "This method is not implemented yet but preserved for compatibility"
-        )]
-        pub async fn get_did_document(&self, wallet: &WalletAddress) -> Result<DidDocument> {
-            get_did_document(self.client.http_client(), wallet).await
+        pub async fn get_did_document(&self, _wallet: &WalletAddress) -> Result<()> {
+            unimplemented!()
         }
     }
 }

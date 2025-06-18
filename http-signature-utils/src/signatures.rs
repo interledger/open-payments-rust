@@ -2,13 +2,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::{Signer, SigningKey};
 use http::Request;
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum SignatureError {
-    #[error("Failed to create signature")]
-    SignatureCreationFailed,
-}
+use crate::error::Result;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SignatureHeaders {
@@ -52,22 +46,22 @@ fn create_signature_base_string(
                 .headers()
                 .get("Authorization")
                 .and_then(|v| v.to_str().ok())
-                .unwrap_or(""), //TODO Throw error SignatureCreationFailed I guess?
+                .unwrap_or(""),
             "content-digest" => request
                 .headers()
                 .get("Content-Digest")
                 .and_then(|v| v.to_str().ok())
-                .unwrap_or(""), //TODO Throw error SignatureCreationFailed I guess?
+                .unwrap_or(""),
             "content-length" => request
                 .headers()
                 .get("Content-Length")
                 .and_then(|v| v.to_str().ok())
-                .unwrap_or(""), //TODO Throw error SignatureCreationFailed I guess?
+                .unwrap_or(""),
             "content-type" => request
                 .headers()
                 .get("Content-Type")
                 .and_then(|v| v.to_str().ok())
-                .unwrap_or(""), //TODO Throw error SignatureCreationFailed I guess?
+                .unwrap_or(""),
             _ => "",
         };
         parts.push(format!("\"{}\": {}", component, value));
@@ -85,9 +79,9 @@ fn create_signature_base_string(
     base_string
 }
 
-pub async fn create_signature_headers(
+pub fn create_signature_headers(
     options: SignOptions<'_>,
-) -> Result<SignatureHeaders, SignatureError> {
+) -> Result<SignatureHeaders> {
     let mut components = vec!["@method", "@target-uri", "content-type"];
 
     if options.request.headers().get("Authorization").is_some() {
@@ -125,8 +119,8 @@ mod tests {
     use http::{Method, Request, Uri};
     use rand::rngs::OsRng;
 
-    #[tokio::test]
-    async fn test_signature_creation() {
+    #[test]
+    fn test_signature_creation() {
         let mut request = Request::new(Some("test body".to_string()));
         *request.method_mut() = Method::POST;
         *request.uri_mut() = Uri::from_static("http://example.com");
@@ -137,7 +131,7 @@ mod tests {
         let signing_key = SigningKey::generate(&mut OsRng);
         let options = SignOptions::new(&request, &signing_key, "test-key".to_string());
 
-        let headers = create_signature_headers(options).await.unwrap();
+        let headers = create_signature_headers(options).unwrap();
         assert!(!headers.signature.is_empty());
         assert!(!headers.signature_input.is_empty());
     }
