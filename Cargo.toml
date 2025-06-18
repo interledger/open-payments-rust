@@ -1,6 +1,5 @@
 [workspace]
 resolver = "2"
 members = [
-    "openapi-to-jsonschema", 
-    "op-types", "op-client", "http-signature-utils",
+    "op-types", "open-payments-snippets-rust", "op-client", "http-signature-utils"
 ]

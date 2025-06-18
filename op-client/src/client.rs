@@ -1,9 +1,8 @@
 use crate::config::ClientConfig;
-use anyhow::{Context, Result};
+use crate::error::{OpClientError, Result};
 use ed25519_dalek::SigningKey;
-use http_signature_utils::jwk::Jwk;
-use reqwest::Client as ReqwestClient;
-
+use http_signature_utils::{jwk::Jwk, load_or_generate_key};
+use reqwest::{Client, Client as ReqwestClient};
 pub trait BaseClient {
     fn http_client(&self) -> &ReqwestClient;
 }
@@ -22,15 +21,18 @@ impl BaseClient for AuthenticatedOpenPaymentsClient {
 }
 
 impl AuthenticatedOpenPaymentsClient {
-    pub async fn new(config: ClientConfig) -> Result<Self> {
+    pub fn new(config: ClientConfig) -> Result<Self> {
         let http_client = ReqwestClient::new();
 
-        let signing_key = Jwk::load_or_generate_key(&config.private_key_path)
-            .with_context(|| "Failed to load or generate signing key")?;
+        let signing_key = load_or_generate_key(&config.private_key_path).map_err(|e| {
+            OpClientError::Signature(format!("Failed to load or generate signing key: {}", e))
+        })?;
 
         if let Some(ref jwks_path) = config.jwks_path {
             let jwks_json = Jwk::generate_jwks_json(&signing_key, &config.key_id);
-            Jwk::save_jwks(&jwks_json, jwks_path).with_context(|| "Failed to save JWKS")?;
+            Jwk::save_jwks(&jwks_json, jwks_path).map_err(|e| {
+                OpClientError::Signature(format!("Failed to save JWK to file: {}", e))
+            })?;
         }
 
         Ok(Self {
@@ -57,6 +59,12 @@ impl UnauthenticatedOpenPaymentsClient {
 impl BaseClient for UnauthenticatedOpenPaymentsClient {
     fn http_client(&self) -> &ReqwestClient {
         &self.http_client
+    }
+}
+
+impl BaseClient for Client {
+    fn http_client(&self) -> &ReqwestClient {
+        self
     }
 }
 

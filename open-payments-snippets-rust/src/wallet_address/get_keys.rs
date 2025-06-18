@@ -1,0 +1,22 @@
+use op_client::api::UnauthenticatedResources;
+use open_payments_snippets_rust::utils::{
+    create_unauthenticated_client, get_env_var, init_logging, load_env,
+};
+
+#[tokio::main]
+async fn main() -> op_client::Result<()> {
+    init_logging();
+    load_env()?;
+
+    let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
+
+    let client = create_unauthenticated_client();
+
+    let wallet_address = client.wallet_address().get(&wallet_address_url).await?;
+
+    let keys = client.wallet_address().get_keys(&wallet_address).await?;
+
+    println!("Retrieved wallet address: {:#?}", wallet_address);
+    println!("Retrieved keys: {:#?}", keys);
+    Ok(())
+}

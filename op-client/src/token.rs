@@ -1,30 +1,23 @@
+use crate::Result;
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::request::AuthenticatedRequest;
-use anyhow::Result;
-use op_types::auth::AccessToken;
+use crate::types::AccessTokenResponse;
 use reqwest::Method;
 
-//TODO get token from the client instead of passing it as a parameter
 pub(crate) async fn rotate_access_token(
     client: &AuthenticatedOpenPaymentsClient,
-    auth_url: &str,
-    token: &str,
-) -> Result<AccessToken> {
-    let url = format!("{}/token/{}", auth_url.trim_end_matches('/'), token);
-
-    AuthenticatedRequest::new(client, Method::POST, url)
-        .execute()
+    token_manage_url: &str,
+) -> Result<AccessTokenResponse> {
+    AuthenticatedRequest::new(client, Method::POST, token_manage_url.to_string())
+        .build_and_execute()
         .await
 }
 
 pub(crate) async fn revoke_access_token(
     client: &AuthenticatedOpenPaymentsClient,
-    auth_url: &str,
-    token: &str,
+    token_manage_url: &str,
 ) -> Result<()> {
-    let url = format!("{}/token/{}", auth_url.trim_end_matches('/'), token);
-
-    AuthenticatedRequest::new(client, Method::DELETE, url)
-        .execute()
+    AuthenticatedRequest::new(client, Method::DELETE, token_manage_url.to_string())
+        .build_and_execute()
         .await
 }

@@ -1,17 +1,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use http::{HeaderMap, Request};
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum ValidationError {
-    #[error("Invalid signature")]
-    InvalidSignature,
-    #[error("Missing signature input")]
-    MissingSignatureInput,
-    #[error("Missing signature")]
-    MissingSignature,
-}
+use crate::error::{HttpSignatureError, Result};
 
 pub struct ValidationOptions<'a> {
     pub request: &'a Request<Option<String>>,
@@ -83,7 +73,7 @@ fn create_signature_base_string(
 
 fn parse_signature_input(
     signature_input: &str,
-) -> Result<(Vec<&str>, i64, String), ValidationError> {
+) -> Result<(Vec<&str>, i64, String)> {
     let mut components = Vec::new();
     let mut created = None;
     let mut keyid = None;
@@ -108,18 +98,18 @@ fn parse_signature_input(
         }
     }
 
-    let created = created.ok_or(ValidationError::InvalidSignature)?;
-    let keyid = keyid.ok_or(ValidationError::InvalidSignature)?;
+    let created = created.ok_or_else(|| HttpSignatureError::Validation("Missing created field".to_string()))?;
+    let keyid = keyid.ok_or_else(|| HttpSignatureError::Validation("Missing keyid field".to_string()))?;
 
     Ok((components, created, keyid))
 }
 
-pub async fn validate_signature(options: ValidationOptions<'_>) -> Result<(), ValidationError> {
+pub fn validate_signature(options: ValidationOptions<'_>) -> Result<()> {
     let signature_input = options
         .headers
         .get("Signature-Input")
         .and_then(|v| v.to_str().ok())
-        .ok_or(ValidationError::MissingSignatureInput)?;
+        .ok_or_else(|| HttpSignatureError::Validation("Missing Signature-Input header".to_string()))?;
 
     let (components, created, keyid) = parse_signature_input(signature_input)?;
 
@@ -127,24 +117,24 @@ pub async fn validate_signature(options: ValidationOptions<'_>) -> Result<(), Va
         .headers
         .get("Signature")
         .and_then(|v| v.to_str().ok())
-        .ok_or(ValidationError::MissingSignature)?;
+        .ok_or_else(|| HttpSignatureError::Validation("Missing Signature header".to_string()))?;
 
     let signature_base =
         create_signature_base_string(options.request, &components, created, &keyid);
 
     let signature_bytes = STANDARD
         .decode(signature)
-        .map_err(|_| ValidationError::InvalidSignature)?;
+        .map_err(|_| HttpSignatureError::Validation("Base64 decode failed".to_string()))?;
 
     let signature_bytes: [u8; 64] = signature_bytes
         .try_into()
-        .map_err(|_| ValidationError::InvalidSignature)?;
+        .map_err(|_| HttpSignatureError::Validation("Invalid signature length".to_string()))?;
     let signature = Signature::from_bytes(&signature_bytes);
 
     options
         .public_key
         .verify(signature_base.as_bytes(), &signature)
-        .map_err(|_| ValidationError::InvalidSignature)?;
+        .map_err(|_| HttpSignatureError::Validation("Signature verification failed".to_string()))?;
 
     Ok(())
 }
@@ -157,8 +147,8 @@ mod tests {
     use http::{HeaderMap, Method, Request, Uri};
     use rand::rngs::OsRng;
 
-    #[tokio::test]
-    async fn test_signature_validation() {
+    #[test]
+    fn test_signature_validation() {
         let mut request = Request::new(Some("test body".to_string()));
         *request.method_mut() = Method::POST;
         *request.uri_mut() = Uri::from_static("http://example.com");
@@ -170,7 +160,7 @@ mod tests {
         let verifying_key = VerifyingKey::from(&signing_key);
 
         let options = SignOptions::new(&request, &signing_key, "test-key".to_string());
-        let signature_headers = create_signature_headers(options).await.unwrap();
+        let signature_headers = create_signature_headers(options).unwrap();
 
         let mut headers = HeaderMap::new();
         headers.insert("Signature", signature_headers.signature.parse().unwrap());
@@ -180,6 +170,6 @@ mod tests {
         );
 
         let options = ValidationOptions::new(&request, &headers, &verifying_key);
-        assert!(validate_signature(options).await.is_ok());
+        assert!(validate_signature(options).is_ok());
     }
 }

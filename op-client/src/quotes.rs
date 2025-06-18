@@ -1,8 +1,8 @@
+use crate::OpClientError;
+use crate::Result;
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::request::AuthenticatedRequest;
-use crate::types::quotes::QuoteRequest;
-use anyhow::Result;
-use op_types::resource::Quote;
+use crate::types::{Quote, QuoteRequest};
 use reqwest::Method;
 
 pub(crate) async fn create_quote(
@@ -11,11 +11,11 @@ pub(crate) async fn create_quote(
     req_body: &QuoteRequest,
 ) -> Result<Quote> {
     let url = format!("{}/quotes", resource_server_url.trim_end_matches('/'));
-    let body = serde_json::to_string(req_body)?;
+    let body = serde_json::to_string(req_body).map_err(OpClientError::Serde)?;
 
     AuthenticatedRequest::new(client, Method::POST, url)
         .with_body(body)
-        .execute()
+        .build_and_execute()
         .await
 }
 
@@ -24,6 +24,6 @@ pub(crate) async fn get_quote(
     quote_url: &str,
 ) -> Result<Quote> {
     AuthenticatedRequest::new(client, Method::GET, quote_url.to_string())
-        .execute()
+        .build_and_execute()
         .await
 }
