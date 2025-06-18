@@ -58,11 +58,10 @@ async fn test_grant_flows() {
 
     test_setup.auth_client.access_token = Some(continue_.access_token.value);
 
-    let response = test_setup
+    test_setup
         .auth_client
         .grant()
         .cancel(&continue_.uri)
         .await
         .expect("Failed to cancel grant");
-    assert_eq!(response, ());
 }

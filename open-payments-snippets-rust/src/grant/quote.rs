@@ -7,7 +7,6 @@ use op_types::{
 use open_payments_snippets_rust::utils::{
     create_authenticated_client, get_env_var, init_logging, load_env,
 };
-use serde_json;
 
 #[tokio::main]
 async fn main() -> op_client::Result<()> {

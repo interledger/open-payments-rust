@@ -11,7 +11,7 @@ pub(crate) async fn request_grant(
     grant: &GrantRequest,
 ) -> Result<GrantResponse> {
     let url = format!("{}/", auth_url.trim_end_matches('/'));
-    let body = serde_json::to_string(grant).map_err(|e| OpClientError::Serde(e))?;
+    let body = serde_json::to_string(grant).map_err(OpClientError::Serde)?;
 
     AuthenticatedRequest::new(client, Method::POST, url)
         .with_body(body)
@@ -27,7 +27,7 @@ pub(crate) async fn continue_grant(
     let body = serde_json::to_string(&ContinueRequest {
         interact_ref: Some(interact_ref.to_string()),
     })
-    .map_err(|e| OpClientError::Serde(e))?;
+    .map_err(OpClientError::Serde)?;
 
     AuthenticatedRequest::new(client, Method::POST, continue_uri.to_string())
         .with_body(body)

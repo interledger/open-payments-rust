@@ -74,9 +74,8 @@ fn create_signature_base_string(
         keyid
     );
     parts.push(format!("\"@signature-params\": {}", sig_params));
-
-    let base_string = parts.join("\n");
-    base_string
+    
+    parts.join("\n")
 }
 
 pub fn create_signature_headers(
