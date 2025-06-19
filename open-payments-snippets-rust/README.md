@@ -40,7 +40,7 @@ Open the newly created `.env` file and fill in the following variables:
 
 -   `PRIVATE_KEY_PATH`
 -   `KEY_ID`
--   `JWKS_PATH` (used for generating the JWK from the private key)
+-   `JWKS_PATH` (path to store the JWK generated from the private key)
 
 Now that you have all the necessary components to initialize the authenticated Open Payments client, you're ready to
 begin utilizing the code snippets.
