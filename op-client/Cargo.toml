@@ -23,7 +23,6 @@ op-types = { path = "../op-types" }
 http-signature-utils = { path = "../http-signature-utils" }
 
 [dev-dependencies]
-mockito = "1.4"
 rand = "0.8"
 tokio = { version = "1.36", features = ["full"] }
 chrono = { version = "0.4.35", features = ["serde"] }
