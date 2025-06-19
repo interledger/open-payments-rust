@@ -10,7 +10,7 @@ particular application.
 
 -   Rust (>=1.43.1)
 -   Cargo (comes with Rust)
--   [Rust Open Payments SDK](https://github.com/interledger/open-payments-rust))
+-   [Rust Open Payments SDK](https://github.com/interledger/open-payments-rust)
 
 ### Recommendations
 
