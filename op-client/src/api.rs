@@ -42,7 +42,6 @@ pub mod authenticated {
             get_quote(self.client, quote_url, access_token).await
         }
     }
-    //TODO Add public incoming payment as unauth resource
     pub struct IncomingPaymentResource<'a> {
         client: &'a AuthenticatedOpenPaymentsClient,
     }
