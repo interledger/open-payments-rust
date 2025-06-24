@@ -40,10 +40,13 @@ pub type AuthenticatedRequest<'a> = HttpRequest<'a, AuthenticatedOpenPaymentsCli
 pub type UnauthenticatedRequest<'a> = HttpRequest<'a, Client>;
 
 impl AuthenticatedRequest<'_> {
-    pub async fn build_and_execute<T: DeserializeOwned + 'static>(self) -> Result<T> {
+    pub async fn build_and_execute<T: DeserializeOwned + 'static>(
+        self,
+        access_token: Option<&str>,
+    ) -> Result<T> {
         let mut req = build_request(&self)?;
 
-        if let Some(token) = &self.client.access_token {
+        if let Some(token) = access_token {
             req.headers_mut().insert(
                 "Authorization",
                 format!("GNAP {}", token).parse().map_err(|e| {
@@ -175,9 +178,27 @@ async fn execute_request<T: DeserializeOwned + 'static>(
             "Request failed: HTTP {}",
             resp.status()
         )));
+
+        /*
+
+
+        let response_body = resp.json().map_err(OpClientError::from)?;
+
+        return Err(OpError {
+            status: Some(resp.status().as_u16() as u8),
+            code: None,
+            validation_errors: None,
+            description: Some(OpClientError::Http(format!(
+                "Request failed: HTTP {}",
+                response_body
+            ))),
+        })
+         */
     }
 
-    if resp.status() == reqwest::StatusCode::NO_CONTENT && std::any::TypeId::of::<T>() == std::any::TypeId::of::<()>() {
+    if resp.status() == reqwest::StatusCode::NO_CONTENT
+        && std::any::TypeId::of::<T>() == std::any::TypeId::of::<()>()
+    {
         return Ok(serde_json::from_str::<T>("null")
             .expect("Deserializing unit type from null should never fail"));
     }

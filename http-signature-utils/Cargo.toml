@@ -21,6 +21,7 @@ sha2 = "0.10"
 [dev-dependencies]
 tokio = { version = "1.0", features = ["rt", "macros"] }
 env_logger = "0.11.8"
+tempfile = "3.8"
 
 [[example]]
 name = "generate_signature"

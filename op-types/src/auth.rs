@@ -94,7 +94,7 @@ pub struct AccessTokenRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InteractRequest {
     pub start: Vec<String>,
-    pub finish: InteractFinish,
+    pub finish: Option<InteractFinish>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

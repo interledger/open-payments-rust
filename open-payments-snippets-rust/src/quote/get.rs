@@ -8,14 +8,12 @@ async fn main() -> op_client::Result<()> {
     init_logging();
     load_env()?;
 
-    let mut client = create_authenticated_client()?;
+    let client = create_authenticated_client()?;
 
     let gnap_token = get_env_var("QUOTE_ACCESS_TOKEN")?;
     let quote_url = get_env_var("QUOTE_URL")?;
 
-    client.access_token = Some(gnap_token);
-
-    let quote = client.quotes().get(&quote_url).await?;
+    let quote = client.quotes().get(&quote_url, Some(&gnap_token)).await?;
 
     println!("Quote: {:#?}", quote);
     Ok(())

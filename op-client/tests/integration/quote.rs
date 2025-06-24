@@ -48,11 +48,11 @@ async fn get_access_token(test_setup: &mut TestSetup) -> String {
     access_token.value
 }
 
-async fn create_incoming_payment(test_setup: &TestSetup) -> String {
+async fn create_incoming_payment(test_setup: &TestSetup, access_token: &str) -> String {
     let request = IncomingPaymentRequest {
         wallet_address: test_setup.wallet_address.clone(),
         incoming_amount: Some(Amount {
-            value: 100,
+            value: "100".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         }),
@@ -63,7 +63,11 @@ async fn create_incoming_payment(test_setup: &TestSetup) -> String {
     let incoming_payment = test_setup
         .auth_client
         .incoming_payments()
-        .create(&test_setup.resource_server_url, &request)
+        .create(
+            &test_setup.resource_server_url,
+            &request,
+            Some(&access_token),
+        )
         .await
         .expect("Failed to create incoming payment");
 
@@ -73,10 +77,10 @@ async fn create_incoming_payment(test_setup: &TestSetup) -> String {
 #[tokio::test]
 async fn test_quote_flows() {
     let mut test_setup = TestSetup::new().await.expect("Failed to create test setup");
-    test_setup.auth_client.access_token = Some(get_access_token(&mut test_setup).await);
+    let access_token = get_access_token(&mut test_setup).await;
 
     // Create an incoming payment to use as the receiver
-    let incoming_payment_url = create_incoming_payment(&test_setup).await;
+    let incoming_payment_url = create_incoming_payment(&test_setup, &access_token).await;
 
     // Test quote with no amount
     let request = QuoteRequest::NoAmountQuote {
@@ -88,7 +92,11 @@ async fn test_quote_flows() {
     let quote = test_setup
         .auth_client
         .quotes()
-        .create(&test_setup.resource_server_url, &request)
+        .create(
+            &test_setup.resource_server_url,
+            &request,
+            Some(&access_token),
+        )
         .await
         .expect("Failed to create quote");
 
@@ -100,7 +108,7 @@ async fn test_quote_flows() {
         receiver: Receiver(incoming_payment_url.clone()),
         method: PaymentMethodType::Ilp,
         debit_amount: Amount {
-            value: 100,
+            value: "100".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         },
@@ -109,17 +117,21 @@ async fn test_quote_flows() {
     let quote = test_setup
         .auth_client
         .quotes()
-        .create(&test_setup.resource_server_url, &request)
+        .create(
+            &test_setup.resource_server_url,
+            &request,
+            Some(&access_token),
+        )
         .await
         .expect("Failed to create quote");
 
     assert_eq!(quote.wallet_address, test_setup.wallet_address);
-    assert_eq!(quote.debit_amount.value, 100);
+    assert_eq!(quote.debit_amount.value, "100");
 
     let retrieved_quote = test_setup
         .auth_client
         .quotes()
-        .get(&quote.id)
+        .get(&quote.id, Some(&access_token))
         .await
         .expect("Failed to get quote");
 
@@ -132,7 +144,7 @@ async fn test_quote_flows() {
         receiver: Receiver(incoming_payment_url),
         method: PaymentMethodType::Ilp,
         receive_amount: Amount {
-            value: 100,
+            value: "100".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         },
@@ -141,10 +153,14 @@ async fn test_quote_flows() {
     let quote = test_setup
         .auth_client
         .quotes()
-        .create(&test_setup.resource_server_url, &request)
+        .create(
+            &test_setup.resource_server_url,
+            &request,
+            Some(&access_token),
+        )
         .await
         .expect("Failed to create quote");
 
     assert_eq!(quote.wallet_address, test_setup.wallet_address);
-    assert_eq!(quote.receive_amount.value, 100);
+    assert_eq!(quote.receive_amount.value, "100");
 }

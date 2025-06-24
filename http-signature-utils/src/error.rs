@@ -1,6 +1,6 @@
-use thiserror::Error;
-use std::io;
 use base64::DecodeError;
+use std::io;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum HttpSignatureError {
@@ -26,4 +26,4 @@ pub enum HttpSignatureError {
     Other(String),
 }
 
-pub type Result<T> = std::result::Result<T, HttpSignatureError>; 
+pub type Result<T> = std::result::Result<T, HttpSignatureError>;

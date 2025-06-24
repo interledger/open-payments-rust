@@ -9,7 +9,7 @@ pub use op_types::resource::{
     CreateIncomingPaymentRequest as IncomingPaymentRequest,
     CreateOutgoingPaymentRequest as OutgoingPaymentRequest, IncomingPayment,
     ListIncomingPaymentsResponse, ListOutgoingPaymentsResponse, OutgoingPayment, PaymentMethod,
-    PaymentMethodType,
+    PaymentMethodType, PublicIncomingPayment,
 };
 
 pub use op_types::resource::{CreateQuoteRequest as QuoteRequest, Quote};

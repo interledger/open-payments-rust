@@ -1,8 +1,8 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
+use crate::error::Result;
+use base64::{Engine, engine::general_purpose::STANDARD};
 use ed25519_dalek::{Signer, SigningKey};
 use http::Request;
 use serde::{Deserialize, Serialize};
-use crate::error::Result;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SignatureHeaders {
@@ -74,13 +74,11 @@ fn create_signature_base_string(
         keyid
     );
     parts.push(format!("\"@signature-params\": {}", sig_params));
-    
+
     parts.join("\n")
 }
 
-pub fn create_signature_headers(
-    options: SignOptions<'_>,
-) -> Result<SignatureHeaders> {
+pub fn create_signature_headers(options: SignOptions<'_>) -> Result<SignatureHeaders> {
     let mut components = vec!["@method", "@target-uri", "content-type"];
 
     if options.request.headers().get("Authorization").is_some() {

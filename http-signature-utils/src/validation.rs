@@ -1,7 +1,7 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
+use crate::error::{HttpSignatureError, Result};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use http::{HeaderMap, Request};
-use crate::error::{HttpSignatureError, Result};
 
 pub struct ValidationOptions<'a> {
     pub request: &'a Request<Option<String>>,
@@ -71,9 +71,7 @@ fn create_signature_base_string(
     parts.join("\n")
 }
 
-fn parse_signature_input(
-    signature_input: &str,
-) -> Result<(Vec<&str>, i64, String)> {
+fn parse_signature_input(signature_input: &str) -> Result<(Vec<&str>, i64, String)> {
     let mut components = Vec::new();
     let mut created = None;
     let mut keyid = None;
@@ -98,8 +96,10 @@ fn parse_signature_input(
         }
     }
 
-    let created = created.ok_or_else(|| HttpSignatureError::Validation("Missing created field".to_string()))?;
-    let keyid = keyid.ok_or_else(|| HttpSignatureError::Validation("Missing keyid field".to_string()))?;
+    let created = created
+        .ok_or_else(|| HttpSignatureError::Validation("Missing created field".to_string()))?;
+    let keyid =
+        keyid.ok_or_else(|| HttpSignatureError::Validation("Missing keyid field".to_string()))?;
 
     Ok((components, created, keyid))
 }
@@ -109,7 +109,9 @@ pub fn validate_signature(options: ValidationOptions<'_>) -> Result<()> {
         .headers
         .get("Signature-Input")
         .and_then(|v| v.to_str().ok())
-        .ok_or_else(|| HttpSignatureError::Validation("Missing Signature-Input header".to_string()))?;
+        .ok_or_else(|| {
+            HttpSignatureError::Validation("Missing Signature-Input header".to_string())
+        })?;
 
     let (components, created, keyid) = parse_signature_input(signature_input)?;
 
@@ -142,7 +144,7 @@ pub fn validate_signature(options: ValidationOptions<'_>) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{create_signature_headers, SignOptions};
+    use crate::{SignOptions, create_signature_headers};
     use ed25519_dalek::{SigningKey, VerifyingKey};
     use http::{HeaderMap, Method, Request, Uri};
     use rand::rngs::OsRng;

@@ -2,21 +2,21 @@ use crate::client::{AuthenticatedOpenPaymentsClient, BaseClient};
 use crate::types::{
     AccessTokenResponse, ContinueResponse, GrantRequest, GrantResponse, IncomingPayment,
     IncomingPaymentRequest, JsonWebKeySet, ListIncomingPaymentsResponse,
-    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentRequest, Quote, QuoteRequest,
-    WalletAddress,
+    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentRequest, PublicIncomingPayment,
+    Quote, QuoteRequest, WalletAddress,
 };
 use crate::{
     Result,
     grant::{cancel_grant, continue_grant, request_grant},
     payments::{
         complete_incoming_payment, create_incoming_payment, create_outgoing_payment,
-        get_incoming_payment, get_outgoing_payment, list_incoming_payments, list_outgoing_payments,
+        get_incoming_payment, get_outgoing_payment, get_public_incoming_payment,
+        list_incoming_payments, list_outgoing_payments,
     },
     quotes::{create_quote, get_quote},
     token::{revoke_access_token, rotate_access_token},
     wallet_address::{get_keys, get_wallet_address},
 };
-
 pub mod authenticated {
     use super::*;
 
@@ -33,15 +33,16 @@ pub mod authenticated {
             &self,
             resource_server_url: &str,
             req_body: &QuoteRequest,
+            access_token: Option<&str>,
         ) -> Result<Quote> {
-            create_quote(self.client, resource_server_url, req_body).await
+            create_quote(self.client, resource_server_url, req_body, access_token).await
         }
 
-        pub async fn get(&self, quote_url: &str) -> Result<Quote> {
-            get_quote(self.client, quote_url).await
+        pub async fn get(&self, quote_url: &str, access_token: Option<&str>) -> Result<Quote> {
+            get_quote(self.client, quote_url, access_token).await
         }
     }
-
+    //TODO Add public incoming payment as unauth resource
     pub struct IncomingPaymentResource<'a> {
         client: &'a AuthenticatedOpenPaymentsClient,
     }
@@ -55,16 +56,25 @@ pub mod authenticated {
             &self,
             resource_server_url: &str,
             req_body: &IncomingPaymentRequest,
+            access_token: Option<&str>,
         ) -> Result<IncomingPayment> {
-            create_incoming_payment(self.client, resource_server_url, req_body).await
+            create_incoming_payment(self.client, resource_server_url, req_body, access_token).await
         }
 
-        pub async fn get(&self, payment_url: &str) -> Result<IncomingPayment> {
-            get_incoming_payment(self.client, payment_url).await
+        pub async fn get(
+            &self,
+            payment_url: &str,
+            access_token: Option<&str>,
+        ) -> Result<IncomingPayment> {
+            get_incoming_payment(self.client, payment_url, access_token).await
         }
 
-        pub async fn complete(&self, payment_url: &str) -> Result<IncomingPayment> {
-            complete_incoming_payment(self.client, payment_url).await
+        pub async fn complete(
+            &self,
+            payment_url: &str,
+            access_token: Option<&str>,
+        ) -> Result<IncomingPayment> {
+            complete_incoming_payment(self.client, payment_url, access_token).await
         }
 
         pub async fn list(
@@ -74,6 +84,7 @@ pub mod authenticated {
             cursor: Option<&str>,
             first: Option<u32>,
             last: Option<u32>,
+            access_token: Option<&str>,
         ) -> Result<ListIncomingPaymentsResponse> {
             list_incoming_payments(
                 self.client,
@@ -82,6 +93,7 @@ pub mod authenticated {
                 cursor,
                 first,
                 last,
+                access_token,
             )
             .await
         }
@@ -100,8 +112,9 @@ pub mod authenticated {
             &self,
             resource_server_url: &str,
             req_body: &OutgoingPaymentRequest,
+            access_token: Option<&str>,
         ) -> Result<OutgoingPayment> {
-            create_outgoing_payment(self.client, resource_server_url, req_body).await
+            create_outgoing_payment(self.client, resource_server_url, req_body, access_token).await
         }
 
         pub async fn list(
@@ -111,6 +124,7 @@ pub mod authenticated {
             cursor: Option<&str>,
             first: Option<u32>,
             last: Option<u32>,
+            access_token: Option<&str>,
         ) -> Result<ListOutgoingPaymentsResponse> {
             list_outgoing_payments(
                 self.client,
@@ -119,12 +133,17 @@ pub mod authenticated {
                 cursor,
                 first,
                 last,
+                access_token,
             )
             .await
         }
 
-        pub async fn get(&self, payment_url: &str) -> Result<OutgoingPayment> {
-            get_outgoing_payment(self.client, payment_url).await
+        pub async fn get(
+            &self,
+            payment_url: &str,
+            access_token: Option<&str>,
+        ) -> Result<OutgoingPayment> {
+            get_outgoing_payment(self.client, payment_url, access_token).await
         }
     }
 
@@ -145,12 +164,13 @@ pub mod authenticated {
             &self,
             continue_uri: &str,
             interact_ref: &str,
+            access_token: Option<&str>,
         ) -> Result<ContinueResponse> {
-            continue_grant(self.client, continue_uri, interact_ref).await
+            continue_grant(self.client, continue_uri, interact_ref, access_token).await
         }
 
-        pub async fn cancel(&self, continue_uri: &str) -> Result<()> {
-            cancel_grant(self.client, continue_uri).await
+        pub async fn cancel(&self, continue_uri: &str, access_token: Option<&str>) -> Result<()> {
+            cancel_grant(self.client, continue_uri, access_token).await
         }
     }
 
@@ -163,12 +183,16 @@ pub mod authenticated {
             Self { client }
         }
 
-        pub async fn rotate(&self, auth_url: &str) -> Result<AccessTokenResponse> {
-            rotate_access_token(self.client, auth_url).await
+        pub async fn rotate(
+            &self,
+            auth_url: &str,
+            access_token: Option<&str>,
+        ) -> Result<AccessTokenResponse> {
+            rotate_access_token(self.client, auth_url, access_token).await
         }
 
-        pub async fn revoke(&self, auth_url: &str) -> Result<()> {
-            revoke_access_token(self.client, auth_url).await
+        pub async fn revoke(&self, auth_url: &str, access_token: Option<&str>) -> Result<()> {
+            revoke_access_token(self.client, auth_url, access_token).await
         }
     }
 }
@@ -197,6 +221,20 @@ pub mod unauthenticated {
             unimplemented!()
         }
     }
+
+    pub struct IncomingPaymentResource<'a, C: BaseClient> {
+        client: &'a C,
+    }
+
+    impl<'a, C: BaseClient> IncomingPaymentResource<'a, C> {
+        pub(crate) fn new(client: &'a C) -> Self {
+            Self { client }
+        }
+
+        pub async fn get(&self, payment_url: &str) -> Result<PublicIncomingPayment> {
+            get_public_incoming_payment(self.client, payment_url).await
+        }
+    }
 }
 
 pub trait AuthenticatedResources {
@@ -210,6 +248,7 @@ pub trait AuthenticatedResources {
 /// Extension trait for any client (authenticated or not)
 pub trait UnauthenticatedResources: BaseClient + Sized {
     fn wallet_address(&self) -> unauthenticated::WalletAddressResource<Self>;
+    fn public_incoming_payments(&self) -> unauthenticated::IncomingPaymentResource<Self>;
 }
 
 impl AuthenticatedResources for AuthenticatedOpenPaymentsClient {
@@ -237,5 +276,9 @@ impl AuthenticatedResources for AuthenticatedOpenPaymentsClient {
 impl<C: BaseClient> UnauthenticatedResources for C {
     fn wallet_address(&self) -> unauthenticated::WalletAddressResource<Self> {
         unauthenticated::WalletAddressResource::new(self)
+    }
+
+    fn public_incoming_payments(&self) -> unauthenticated::IncomingPaymentResource<Self> {
+        unauthenticated::IncomingPaymentResource::new(self)
     }
 }
