@@ -178,22 +178,6 @@ async fn execute_request<T: DeserializeOwned + 'static>(
             "Request failed: HTTP {}",
             resp.status()
         )));
-
-        /*
-
-
-        let response_body = resp.json().map_err(OpClientError::from)?;
-
-        return Err(OpError {
-            status: Some(resp.status().as_u16() as u8),
-            code: None,
-            validation_errors: None,
-            description: Some(OpClientError::Http(format!(
-                "Request failed: HTTP {}",
-                response_body
-            ))),
-        })
-         */
     }
 
     if resp.status() == reqwest::StatusCode::NO_CONTENT
