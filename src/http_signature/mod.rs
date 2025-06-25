@@ -27,7 +27,7 @@
 //!     let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
 //!     let options = SignOptions::new(&request, &signing_key, "test-key".to_string());
 //!     let signature_headers = create_signature_headers(options)?;
-//! 
+//!
 //!     let mut headers = HeaderMap::new();
 //!     headers.insert("Signature", signature_headers.signature.parse().map_err(|_| HttpSignatureError::Validation("Invalid signature".to_string()))?);
 //!     headers.insert(
@@ -37,7 +37,7 @@
 //!     let public_key = signing_key.verifying_key();
 //!     let options = ValidationOptions::new(&request, &headers, &public_key);
 //!     validate_signature(options)?;
-//! 
+//!
 //!     Ok(())
 //! }
 //! ```
@@ -81,6 +81,6 @@ pub mod validation;
 
 pub use self::error::{HttpSignatureError, Result};
 pub use self::jwk::{Jwk, JwkError};
-pub use self::signatures::{SignOptions, SignatureHeaders, create_signature_headers};
+pub use self::signatures::{create_signature_headers, SignOptions, SignatureHeaders};
 pub use self::utils::load_or_generate_key;
-pub use self::validation::{ValidationOptions, validate_signature}; 
+pub use self::validation::{validate_signature, ValidationOptions};

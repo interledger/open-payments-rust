@@ -1,7 +1,9 @@
-use open_payments::client::AuthenticatedResources;
 use open_payments::client::api::UnauthenticatedResources;
-use open_payments::types::auth::{AccessItem, AccessTokenRequest, GrantRequest, GrantResponse, IncomingPaymentAction};
+use open_payments::client::AuthenticatedResources;
 use open_payments::snippets::utils::{create_authenticated_client, get_env_var, load_env};
+use open_payments::types::auth::{
+    AccessItem, AccessTokenRequest, GrantRequest, GrantResponse, IncomingPaymentAction,
+};
 
 #[tokio::main]
 async fn main() -> open_payments::client::Result<()> {
@@ -54,4 +56,4 @@ async fn main() -> open_payments::client::Result<()> {
     }
 
     Ok(())
-} 
+}

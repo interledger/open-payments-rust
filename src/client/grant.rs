@@ -1,8 +1,8 @@
-use crate::OpClientError;
-use crate::Result;
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::request::AuthenticatedRequest;
 use crate::types::{ContinueRequest, ContinueResponse, GrantRequest, GrantResponse};
+use crate::OpClientError;
+use crate::Result;
 use reqwest::Method;
 
 pub(crate) async fn request_grant(

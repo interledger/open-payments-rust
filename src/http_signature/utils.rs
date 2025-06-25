@@ -1,8 +1,8 @@
 use crate::http_signature::{HttpSignatureError, Result};
-use base64::{Engine, engine::general_purpose::STANDARD};
+use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::SigningKey;
-use pem::{Pem, encode, parse};
-use pkcs8::{PrivateKeyInfo, der::Decode};
+use pem::{encode, parse, Pem};
+use pkcs8::{der::Decode, PrivateKeyInfo};
 use rand::rngs::OsRng;
 use std::fs;
 use std::path::Path;

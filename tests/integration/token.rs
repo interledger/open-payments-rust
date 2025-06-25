@@ -1,8 +1,7 @@
 use crate::integration::common::TestSetup;
 use open_payments::client::{AuthenticatedResources, UnauthenticatedResources};
 use open_payments::types::{
-    AccessItem, AccessToken, AccessTokenRequest, GrantRequest, GrantResponse,
-    IncomingPaymentAction,
+    AccessItem, AccessToken, AccessTokenRequest, GrantRequest, GrantResponse, IncomingPaymentAction,
 };
 
 async fn get_access_token(test_setup: &mut TestSetup) -> AccessToken {
@@ -63,4 +62,4 @@ async fn test_token_flows() {
         .revoke(&rotated_token.manage, Some(&rotated_token.value))
         .await
         .expect("Failed to revoke token");
-} 
+}

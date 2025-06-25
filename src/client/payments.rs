@@ -1,5 +1,3 @@
-use crate::OpClientError;
-use crate::Result;
 use crate::client::{AuthenticatedOpenPaymentsClient, BaseClient};
 use crate::request::{AuthenticatedRequest, UnauthenticatedRequest};
 use crate::types::{
@@ -7,6 +5,8 @@ use crate::types::{
     ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentRequest, PublicIncomingPayment,
 };
 use crate::utils::join_url_paths;
+use crate::OpClientError;
+use crate::Result;
 use reqwest::Method;
 use url::Url;
 

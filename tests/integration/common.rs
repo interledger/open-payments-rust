@@ -1,5 +1,5 @@
-use open_payments::client::{AuthenticatedClient, UnauthenticatedClient};
 use open_payments::client::ClientConfig;
+use open_payments::client::{AuthenticatedClient, UnauthenticatedClient};
 use open_payments::client::{OpClientError, Result};
 use std::env;
 
@@ -47,4 +47,4 @@ impl TestSetup {
 
         Ok(test_setup)
     }
-} 
+}

@@ -6,7 +6,7 @@ authors = ["Interledger <tech@interledger.org>"]
 description = "Open Payments Rust client library with types, HTTP client, and utilities"
 license = "Apache-2.0"
 repository = "https://github.com/interledger/open-payments-rust"
-keywords = ["open-payments", "interledger", "payments"]
+readme = "README.md"
 
 [features]
 default = []

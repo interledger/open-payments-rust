@@ -16,16 +16,16 @@
 //! - **Content Digest Generation**: SHA-512 content digests for request bodies
 //! - **GNAP Authorization**: Support for Grant Negotiation and Authorization Protocol tokens
 //! - **Error Handling**: Comprehensive error handling for HTTP and signature operations
-use crate::OpClientError;
-use crate::Result;
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::client::BaseClient;
-use crate::http_signature::{SignOptions, create_signature_headers};
-use base64::Engine;
+use crate::http_signature::{create_signature_headers, SignOptions};
+use crate::OpClientError;
+use crate::Result;
 use base64::engine::general_purpose;
+use base64::Engine;
 use http::{
-    Method as HttpMethod, Request,
     header::{HeaderName, HeaderValue},
+    Method as HttpMethod, Request,
 };
 use reqwest::{Client, Method};
 use serde::de::DeserializeOwned;

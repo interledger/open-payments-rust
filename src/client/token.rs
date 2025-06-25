@@ -1,7 +1,7 @@
-use crate::Result;
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::request::AuthenticatedRequest;
 use crate::types::AccessTokenResponse;
+use crate::Result;
 use reqwest::Method;
 
 pub(crate) async fn rotate_access_token(

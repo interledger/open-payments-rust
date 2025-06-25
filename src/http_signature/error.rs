@@ -58,7 +58,7 @@ pub enum HttpSignatureError {
     /// when the signature module cannot read key files or perform other I/O operations.
     #[error("IO error: {0}")]
     Io(#[from] io::Error),
-    
+
     /// Base64 encoding or decoding errors.
     ///
     /// This error is automatically converted from `base64::DecodeError` and occurs
@@ -66,14 +66,14 @@ pub enum HttpSignatureError {
     /// keys, or other encoded content.
     #[error("Base64 decode error: {0}")]
     Base64(#[from] DecodeError),
-    
+
     /// PEM format parsing errors.
     ///
     /// Occurs when the signature module cannot parse PEM-encoded private keys or certificates.
     /// This includes malformed PEM files, unsupported PEM types, or invalid PEM structure.
     #[error("PEM parse error: {0}")]
     Pem(String),
-    
+
     /// PKCS8 key format errors.
     ///
     /// Occurs when the signature module cannot parse PKCS8-encoded private keys.
@@ -81,14 +81,14 @@ pub enum HttpSignatureError {
     /// PKCS8 structure.
     #[error("PKCS8 parse error: {0}")]
     Pkcs8(String),
-    
+
     /// Private key length validation errors.
     ///
     /// Occurs when a private key has an invalid length for the expected algorithm.
     /// For Ed25519 keys, this typically means the key is not exactly 32 bytes long.
     #[error("Invalid private key length")]
     InvalidPrivateKeyLength,
-    
+
     /// UTF-8 encoding or decoding errors.
     ///
     /// This error is automatically converted from `std::string::FromUtf8Error` and occurs
@@ -96,7 +96,7 @@ pub enum HttpSignatureError {
     /// when processing key files or signature data.
     #[error("UTF-8 error: {0}")]
     Utf8(#[from] std::string::FromUtf8Error),
-    
+
     /// JSON Web Key format errors.
     ///
     /// Occurs when there are issues with JWK format, parsing, or processing.
@@ -104,7 +104,7 @@ pub enum HttpSignatureError {
     /// JWK structure.
     #[error("JWK error: {0}")]
     Jwk(String),
-    
+
     /// Signature creation and verification errors.
     ///
     /// Occurs when there are issues with HTTP message signature creation or verification.
@@ -112,14 +112,14 @@ pub enum HttpSignatureError {
     /// compatibility issues.
     #[error("Signature error: {0}")]
     Signature(String),
-    
+
     /// Signature validation and verification errors.
     ///
     /// Occurs when signature validation fails, including expired signatures,
     /// invalid signature formats, or verification failures against public keys.
     #[error("Validation error: {0}")]
     Validation(String),
-    
+
     /// Miscellaneous errors that don't fit into other categories.
     ///
     /// This variant is used for errors that are specific to the HTTP signature

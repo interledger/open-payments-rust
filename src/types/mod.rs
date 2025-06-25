@@ -73,22 +73,20 @@ pub mod wallet_address;
 pub use common::*;
 
 pub use auth::{
-    AccessItem, AccessToken, Continue, ContinueRequest, ContinueResponse, GrantRequest,
-    GrantResponse, IncomingPaymentAction, InteractRequest, InteractResponse, LimitsOutgoing,
-    OutgoingPaymentAction, QuoteAction, AccessTokenResponse, AccessTokenRequest
+    AccessItem, AccessToken, AccessTokenRequest, AccessTokenResponse, Continue, ContinueRequest,
+    ContinueResponse, GrantRequest, GrantResponse, IncomingPaymentAction, InteractRequest,
+    InteractResponse, LimitsOutgoing, OutgoingPaymentAction, QuoteAction,
 };
 
 pub use resource::{
-    CreateIncomingPaymentRequest, CreateOutgoingPaymentRequest, CreateQuoteRequest,
-    IncomingPayment, IncomingPaymentWithMethods, ListIncomingPaymentsResponse,
-    ListOutgoingPaymentsResponse, OutgoingPayment, PageInfo, PaginatedResponse, PaymentMethod,
-    PaymentMethodType, Quote, PublicIncomingPayment,
-    CreateIncomingPaymentRequest as IncomingPaymentRequest,
-    CreateOutgoingPaymentRequest as OutgoingPaymentRequest,
-    CreateQuoteRequest as QuoteRequest,
+    CreateIncomingPaymentRequest, CreateIncomingPaymentRequest as IncomingPaymentRequest,
+    CreateOutgoingPaymentRequest, CreateOutgoingPaymentRequest as OutgoingPaymentRequest,
+    CreateQuoteRequest, CreateQuoteRequest as QuoteRequest, IncomingPayment,
+    IncomingPaymentWithMethods, ListIncomingPaymentsResponse, ListOutgoingPaymentsResponse,
+    OutgoingPayment, PageInfo, PaginatedResponse, PaymentMethod, PaymentMethodType,
+    PublicIncomingPayment, Quote,
 };
 
 pub use wallet_address::{
-    JsonWebKey, JsonWebKeySet, JwkAlgorithm, JwkCurve, JwkKeyType, JwkUse,
-    WalletAddress,
-}; 
+    JsonWebKey, JsonWebKeySet, JwkAlgorithm, JwkCurve, JwkKeyType, JwkUse, WalletAddress,
+};

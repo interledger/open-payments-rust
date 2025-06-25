@@ -1,5 +1,5 @@
 use crate::http_signature::error::{HttpSignatureError, Result};
-use base64::{Engine, engine::general_purpose::STANDARD};
+use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use http::{HeaderMap, Request};
 
@@ -145,7 +145,7 @@ pub fn validate_signature(options: ValidationOptions<'_>) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::http_signature::{SignOptions, create_signature_headers};
+    use crate::http_signature::{create_signature_headers, SignOptions};
     use ed25519_dalek::{SigningKey, VerifyingKey};
     use http::{HeaderMap, Method, Request, Uri};
     use rand::rngs::OsRng;

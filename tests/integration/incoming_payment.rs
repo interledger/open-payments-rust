@@ -107,12 +107,10 @@ async fn test_incoming_payment_flows() {
         .expect("Failed to list incoming payments");
 
     assert!(!list_response.result.is_empty());
-    assert!(
-        list_response
-            .result
-            .iter()
-            .any(|p| p.id == incoming_payment.id)
-    );
+    assert!(list_response
+        .result
+        .iter()
+        .any(|p| p.id == incoming_payment.id));
 
     let complete_response = test_setup
         .auth_client
@@ -123,4 +121,4 @@ async fn test_incoming_payment_flows() {
 
     // `retrieved_payment`` should have `completed` set to false
     assert_eq!(complete_response.completed, !retrieved_payment.completed);
-} 
+}

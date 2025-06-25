@@ -1,8 +1,8 @@
 use crate::integration::common::TestSetup;
-use open_payments::{client::{
-    AuthenticatedResources, UnauthenticatedResources,
-    
-}, types::{AccessItem, AccessTokenRequest, GrantRequest, GrantResponse, IncomingPaymentAction}};
+use open_payments::{
+    client::{AuthenticatedResources, UnauthenticatedResources},
+    types::{AccessItem, AccessTokenRequest, GrantRequest, GrantResponse, IncomingPaymentAction},
+};
 
 #[tokio::test]
 async fn test_grant_flows() {

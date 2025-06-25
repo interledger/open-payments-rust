@@ -55,63 +55,63 @@ pub enum OpClientError {
     /// The error message provides details about the specific HTTP issue.
     #[error("HTTP error: {0}")]
     Http(String),
-    
+
     /// HTTP header parsing errors.
     ///
     /// Occurs when the client cannot parse required HTTP headers such as
     /// `Content-Type`, `Authorization`, or custom headers.
     #[error("Header parse error: {0}")]
     HeaderParse(String),
-    
+
     /// JSON serialization or deserialization errors.
     ///
     /// This error is automatically converted from `serde_json::Error` and occurs
     /// when the client cannot serialize request data or deserialize response data.
     #[error("Serde error: {0}")]
     Serde(#[from] serde_json::Error),
-    
+
     /// File system and I/O errors.
     ///
     /// This error is automatically converted from `std::io::Error` and occurs
     /// when the client cannot read key files or perform other I/O operations.
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
-    
+
     /// PEM format parsing errors.
     ///
     /// Occurs when the client cannot parse PEM-encoded private keys or certificates.
     /// This includes malformed PEM files or unsupported PEM types.
     #[error("Invalid PEM: {0}")]
     Pem(String),
-    
+
     /// PKCS8 key format errors.
     ///
     /// Occurs when the client cannot parse PKCS8-encoded private keys.
     /// This includes unsupported key algorithms or malformed key data.
     #[error("PKCS8 error: {0}")]
     Pkcs8(String),
-    
+
     /// Base64 encoding or decoding errors.
     ///
     /// This error is automatically converted from `base64::DecodeError` and occurs
     /// when the client cannot decode Base64-encoded data such as signatures or keys.
     #[error("Base64 error: {0}")]
     Base64(#[from] base64::DecodeError),
-    
+
     /// URL parsing errors.
     ///
     /// This error is automatically converted from `url::ParseError` and occurs
     /// when the client cannot parse URLs for wallet addresses or API endpoints.
     #[error("URL parse error: {0}")]
     Url(#[from] url::ParseError),
-    
+
     /// Cryptographic signature errors.
     ///
     /// Occurs when there are issues with HTTP message signature creation or validation.
     /// This includes key loading failures, signature generation errors, and validation failures.
     #[error("Signature error: {0}")]
     Signature(String),
-    
+
     /// Miscellaneous errors that don't fit into other categories.
     ///
     /// This variant is used for unexpected errors that don't fall into the standard error categories.

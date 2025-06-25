@@ -1,6 +1,6 @@
-use crate::Result;
 use crate::request::UnauthenticatedRequest;
 use crate::types::{JsonWebKeySet, WalletAddress};
+use crate::Result;
 use reqwest::{Client, Method};
 
 pub(crate) async fn get_wallet_address(

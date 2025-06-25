@@ -1,9 +1,7 @@
 use open_payments::client::api::AuthenticatedResources;
 use open_payments::client::utils::get_resource_server_url;
+use open_payments::snippets::utils::{create_authenticated_client, get_env_var, load_env};
 use open_payments::types::OutgoingPaymentRequest;
-use open_payments::snippets::utils::{
-    create_authenticated_client, get_env_var, load_env,
-};
 
 #[tokio::main]
 async fn main() -> open_payments::client::Result<()> {

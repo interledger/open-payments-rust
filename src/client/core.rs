@@ -1,7 +1,7 @@
 use crate::config::ClientConfig;
 use crate::error::{OpClientError, Result};
-use ed25519_dalek::SigningKey;
 use crate::http_signature::{jwk::Jwk, load_or_generate_key};
+use ed25519_dalek::SigningKey;
 use reqwest::{Client, Client as ReqwestClient};
 
 /// Base trait for HTTP clients that provides access to the underlying reqwest client.

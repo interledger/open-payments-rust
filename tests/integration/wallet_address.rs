@@ -24,4 +24,4 @@ async fn test_get_wallet_address_flows() {
         .expect("Failed to get JWKS");
 
     assert!(!jwks.keys.is_empty());
-} 
+}

@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-/// 
+///
 /// Configuration for an authenticated Open Payments client.
 ///
 /// This struct contains all the necessary configuration for creating an authenticated
 /// client that can sign HTTP requests. It includes paths to cryptographic keys and
 /// identifiers used in the signing process.
-/// 
+///
 /// ## Example
 ///
 /// ```rust
@@ -23,13 +23,13 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientConfig {
     pub key_id: String,
-    
+
     /// Path to the private key file used for signing HTTP requests.
     ///
     /// The private key should be in PEM format (either in plain text or base64 encoded) and compatible with Ed25519 signing.
     /// If the file doesn't exist, a new key will be generated automatically.
     pub private_key_path: PathBuf,
-    
+
     /// Optional path where the JSON Web Key Set (JWKS) should be saved.
     ///
     /// If provided, the client will automatically generate a JWKS containing the

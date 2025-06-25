@@ -1,11 +1,9 @@
-use open_payments::client::AuthenticatedResources;
 use open_payments::client::api::UnauthenticatedResources;
+use open_payments::client::AuthenticatedResources;
+use open_payments::snippets::utils::{create_authenticated_client, get_env_var, load_env};
 use open_payments::types::{
-    GrantResponse,
     auth::{AccessItem, AccessTokenRequest, GrantRequest, QuoteAction},
-};
-use open_payments::snippets::utils::{
-    create_authenticated_client, get_env_var, load_env,
+    GrantResponse,
 };
 
 #[tokio::main]

@@ -6,7 +6,6 @@ use crate::types::{
     Quote, QuoteRequest, WalletAddress,
 };
 use crate::{
-    Result,
     grant::{cancel_grant, continue_grant, request_grant},
     payments::{
         complete_incoming_payment, create_incoming_payment, create_outgoing_payment,
@@ -16,6 +15,7 @@ use crate::{
     quotes::{create_quote, get_quote},
     token::{revoke_access_token, rotate_access_token},
     wallet_address::{get_keys, get_wallet_address},
+    Result,
 };
 pub mod authenticated {
     use super::*;

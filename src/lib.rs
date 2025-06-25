@@ -119,10 +119,10 @@
 //! This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
 
 pub mod client;
-pub mod types;
 pub mod http_signature;
 #[cfg(feature = "snippets")]
 pub mod snippets;
+pub mod types;
 
 // Re-export everything public from client at the crate root
-pub use client::*; 
+pub use client::*;

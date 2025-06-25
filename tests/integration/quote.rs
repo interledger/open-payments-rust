@@ -161,4 +161,4 @@ async fn test_quote_flows() {
 
     assert_eq!(quote.wallet_address, test_setup.wallet_address);
     assert_eq!(quote.receive_amount.value, "100");
-} 
+}

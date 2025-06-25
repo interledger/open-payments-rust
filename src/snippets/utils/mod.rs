@@ -1,6 +1,8 @@
-use dotenv::dotenv;
+use crate::client::{
+    AuthenticatedClient, ClientConfig, OpClientError, Result, UnauthenticatedClient,
+};
 use crate::http_signature::jwk::Jwk;
-use crate::client::{AuthenticatedClient, ClientConfig, OpClientError, Result, UnauthenticatedClient};
+use dotenv::dotenv;
 use std::{env, path::PathBuf};
 
 pub fn load_env() -> Result<()> {

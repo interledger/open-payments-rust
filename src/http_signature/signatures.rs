@@ -1,5 +1,5 @@
 use crate::http_signature::error::Result;
-use base64::{Engine, engine::general_purpose::STANDARD};
+use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::{Signer, SigningKey};
 use http::Request;
 use serde::{Deserialize, Serialize};

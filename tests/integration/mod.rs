@@ -4,4 +4,4 @@ mod incoming_payment;
 mod outgoing_payment;
 mod quote;
 mod token;
-mod wallet_address; 
+mod wallet_address;

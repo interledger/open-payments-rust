@@ -71,8 +71,8 @@
 //! detailed error information for different failure scenarios.
 
 pub mod api;
-pub mod core;
 pub mod config;
+pub mod core;
 pub mod error;
 pub mod grant;
 pub mod payments;
@@ -83,7 +83,7 @@ pub mod utils;
 pub mod wallet_address;
 
 pub use api::{AuthenticatedResources, UnauthenticatedResources};
-pub use core::{AuthenticatedClient, UnauthenticatedClient};
 pub use config::ClientConfig;
+pub use core::{AuthenticatedClient, UnauthenticatedClient};
+pub use core::{AuthenticatedOpenPaymentsClient, BaseClient, UnauthenticatedOpenPaymentsClient};
 pub use error::{OpClientError, Result};
-pub use core::{AuthenticatedOpenPaymentsClient, UnauthenticatedOpenPaymentsClient, BaseClient}; 

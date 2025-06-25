@@ -1,9 +1,9 @@
-use crate::OpClientError;
-use crate::Result;
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::request::AuthenticatedRequest;
 use crate::types::{Quote, QuoteRequest};
 use crate::utils::join_url_paths;
+use crate::OpClientError;
+use crate::Result;
 use reqwest::Method;
 
 pub(crate) async fn create_quote(

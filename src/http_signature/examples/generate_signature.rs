@@ -1,8 +1,8 @@
 use base64::Engine;
 use ed25519_dalek::SigningKey;
 use http::{Method, Request, Uri};
-use open_payments::http_signature::{SignOptions, HttpSignatureError};
 use open_payments::http_signature::signatures::create_signature_headers;
+use open_payments::http_signature::{HttpSignatureError, SignOptions};
 use rand::rngs::OsRng;
 use serde_json::json;
 
@@ -11,9 +11,12 @@ fn main() -> Result<(), HttpSignatureError> {
     let mut request = Request::new(Some("test body".to_string()));
     *request.method_mut() = Method::POST;
     *request.uri_mut() = Uri::from_static("http://example.com/");
-    request
-        .headers_mut()
-        .insert("Content-Type", "application/json".parse().map_err(|e| HttpSignatureError::Other(format!("Failed to parse content type: {}", e)))?);
+    request.headers_mut().insert(
+        "Content-Type",
+        "application/json".parse().map_err(|e| {
+            HttpSignatureError::Other(format!("Failed to parse content type: {}", e))
+        })?,
+    );
 
     // Generate a signing key
     let signing_key = SigningKey::generate(&mut OsRng);
