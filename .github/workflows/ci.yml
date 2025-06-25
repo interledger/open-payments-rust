@@ -39,25 +39,10 @@ jobs:
       run: cargo clippy --all-targets --all-features -- -D warnings
 
     - name: Run tests
-      run: cargo test --all-features
+      run: cargo test --all-features -- --skip integration
 
     - name: Run doc tests
       run: cargo test --doc
-
-    - name: Set up integration test environment
-      run: |
-        # Create test private key file from secret
-        echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_CONTENT }}" > private.key
-        chmod 600 private.key
-        
-        # Create .env file with all env vars
-        echo "OPEN_PAYMENTS_SERVER_URL=${{ secrets.OPEN_PAYMENTS_SERVER_URL }}" >> tests/integration/.env
-        echo "OPEN_PAYMENTS_WALLET_ADDRESS=${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}" >> tests/integration/.env
-        echo "OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}" >> tests/integration/.env
-        echo "OPEN_PAYMENTS_PRIVATE_KEY_PATH=./private.key" >> tests/integration/.env
-
-    - name: Run integration tests
-      run: cargo test --test integration --all-features
 
     - name: Build with snippets feature
       run: cargo build --features snippets

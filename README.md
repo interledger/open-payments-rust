@@ -25,10 +25,10 @@ https://openpayments.dev.
 
 Additionally, this crate contains several modules:
 
-- [`client`](./client) contains a Rust client to make requests via the Open Payments API, as well as re-exporting Rust types for the API from `op-types`.
-- [`types`](./types) contains Rust types for the API.
-- [`snippets`](./snippets) contains examples of Rust client usage for getting accustomed to the Open Payments flow.
-- [`http-signature`](./http-signature) provides tools for working with [HTTP Message Signatures](https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures).
+- [`client`](./src/client) contains a Rust client to make requests via the Open Payments API.
+- [`types`](./src/types) contains Rust types for the API.
+- [`snippets`](./src/snippets) contains examples of Rust client usage for getting accustomed to the Open Payments flow.
+- [`http_signature`](./src/http_signature) provides tools for working with [HTTP Message Signatures](https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures).
 
 ## Dependencies
 
@@ -79,7 +79,7 @@ cargo build
 
 ### Running Examples
 
-See [op-snippets/README.md](./op-snippets/README.md) for details on running code snippets and payment flows. For example, to run a snippet:
+See [src/snippets/README.md](./src/snippets/README.md) for details on running code snippets and payment flows. For example, to run a snippet:
 
 ```sh
 cd src/snippets
