@@ -10,21 +10,19 @@ async fn main() -> op_client::Result<()> {
     init_logging();
     load_env()?;
 
-    let mut client = create_authenticated_client()?;
+    let client = create_authenticated_client()?;
 
     let gnap_token = get_env_var("QUOTE_ACCESS_TOKEN")?;
     let incoming_payment_url = get_env_var("INCOMING_PAYMENT_URL")?;
     let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
     let resource_server_url = get_resource_server_url(&wallet_address_url)?;
 
-    client.access_token = Some(gnap_token);
-
     let request = CreateQuoteRequest::FixedReceiveAmountQuote {
         wallet_address: wallet_address_url,
         receiver: Receiver(incoming_payment_url),
         method: PaymentMethodType::Ilp,
         receive_amount: Amount {
-            value: 1000,
+            value: "1000".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2u8,
         },
@@ -37,7 +35,7 @@ async fn main() -> op_client::Result<()> {
 
     let quote = client
         .quotes()
-        .create(&resource_server_url, &request)
+        .create(&resource_server_url, &request, Some(&gnap_token))
         .await?;
 
     println!("Created quote: {:#?}", quote);

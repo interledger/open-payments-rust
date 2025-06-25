@@ -46,12 +46,11 @@ async fn test_token_flows() {
     let mut test_setup = TestSetup::new().await.expect("Failed to create test setup");
 
     let initial_token = get_access_token(&mut test_setup).await;
-    test_setup.auth_client.access_token = Some(initial_token.value.clone());
 
     let rotated_token_response = test_setup
         .auth_client
         .token()
-        .rotate(&initial_token.manage)
+        .rotate(&initial_token.manage, Some(&initial_token.value))
         .await
         .expect("Failed to rotate token");
 
@@ -60,12 +59,10 @@ async fn test_token_flows() {
     assert!(!rotated_token.manage.is_empty());
     assert_ne!(rotated_token.value, initial_token.value);
 
-    test_setup.auth_client.access_token = Some(rotated_token.value);
-
     test_setup
         .auth_client
         .token()
-        .revoke(&rotated_token.manage)
+        .revoke(&rotated_token.manage, Some(&rotated_token.value))
         .await
         .expect("Failed to revoke token");
 }

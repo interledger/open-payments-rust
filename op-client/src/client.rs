@@ -11,7 +11,6 @@ pub struct AuthenticatedOpenPaymentsClient {
     pub http_client: ReqwestClient,
     pub config: ClientConfig,
     pub signing_key: SigningKey,
-    pub access_token: Option<String>,
 }
 
 impl BaseClient for AuthenticatedOpenPaymentsClient {
@@ -39,7 +38,6 @@ impl AuthenticatedOpenPaymentsClient {
             http_client,
             config,
             signing_key,
-            access_token: None,
         })
     }
 }

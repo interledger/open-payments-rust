@@ -9,10 +9,9 @@ async fn main() -> op_client::Result<()> {
     init_logging();
     load_env()?;
 
-    let mut client = create_authenticated_client()?;
+    let client = create_authenticated_client()?;
 
     let gnap_token = get_env_var("INCOMING_PAYMENT_ACCESS_TOKEN")?;
-    client.access_token = Some(gnap_token);
 
     let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
     let resource_server_url = get_resource_server_url(&wallet_address_url)?;
@@ -24,6 +23,7 @@ async fn main() -> op_client::Result<()> {
             None,
             Some(10),
             None,
+            Some(&gnap_token),
         )
         .await?;
 
@@ -40,6 +40,7 @@ async fn main() -> op_client::Result<()> {
                     Some(&end_cursor),
                     Some(10),
                     None,
+                    Some(&gnap_token),
                 )
                 .await?;
             println!("Next page of incoming payments: {:#?}", next_page.result);

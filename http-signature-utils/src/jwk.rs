@@ -1,7 +1,5 @@
-use base64::{
-    engine::general_purpose::URL_SAFE_NO_PAD,
-    Engine,
-};
+use crate::error::{HttpSignatureError, Result};
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
@@ -9,7 +7,6 @@ use serde_json::json;
 use std::fs;
 use std::path::Path;
 use thiserror::Error;
-use crate::error::{HttpSignatureError, Result};
 
 #[derive(Debug, Error)]
 pub enum JwkError {
@@ -57,7 +54,9 @@ impl Jwk {
 
     pub fn validate(&self) -> Result<()> {
         if self.crv != "Ed25519" || self.kty != "OKP" || self.x.is_empty() {
-            return Err(HttpSignatureError::Jwk(JwkError::InvalidKeyType.to_string()));
+            return Err(HttpSignatureError::Jwk(
+                JwkError::InvalidKeyType.to_string(),
+            ));
         }
         Ok(())
     }
@@ -79,8 +78,7 @@ impl Jwk {
     }
 
     pub fn save_jwks(jwks_json: &str, jwks_path: &Path) -> Result<()> {
-        fs::write(jwks_path, jwks_json)
-            .map_err(HttpSignatureError::from)?;
+        fs::write(jwks_path, jwks_json).map_err(HttpSignatureError::from)?;
         Ok(())
     }
 }

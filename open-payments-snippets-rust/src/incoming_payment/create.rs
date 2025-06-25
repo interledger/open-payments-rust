@@ -12,10 +12,9 @@ async fn main() -> op_client::Result<()> {
     init_logging();
     load_env().map_err(|e| OpClientError::Other(e.to_string()))?;
 
-    let mut client = create_authenticated_client()?;
+    let client = create_authenticated_client()?;
 
     let gnap_token = get_env_var("INCOMING_PAYMENT_ACCESS_TOKEN")?;
-    client.access_token = Some(gnap_token);
 
     let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
     let resource_server_url = get_resource_server_url(&wallet_address_url)?;
@@ -28,7 +27,7 @@ async fn main() -> op_client::Result<()> {
     let request = CreateIncomingPaymentRequest {
         wallet_address: wallet_address_url,
         incoming_amount: Some(Amount {
-            value: 1000,
+            value: "1000".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2u8,
         }),
@@ -43,7 +42,7 @@ async fn main() -> op_client::Result<()> {
 
     let payment = client
         .incoming_payments()
-        .create(&resource_server_url, &request)
+        .create(&resource_server_url, &request, Some(&gnap_token))
         .await?;
 
     println!("Created incoming payment: {:#?}", payment);

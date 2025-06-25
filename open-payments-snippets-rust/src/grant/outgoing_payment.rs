@@ -18,17 +18,15 @@ async fn main() -> op_client::Result<()> {
     load_env()?;
 
     // Authenticated client can be also used for unauthenticated resources
-    let mut client = create_authenticated_client()?;
+    let client = create_authenticated_client()?;
 
     let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
     let quote_url = get_env_var("QUOTE_URL")?;
     let gnap_token = get_env_var("QUOTE_ACCESS_TOKEN")?;
 
-    client.access_token = Some(gnap_token);
-
     let wallet_address = client.wallet_address().get(&wallet_address_url).await?;
 
-    let quote = client.quotes().get(&quote_url).await?;
+    let quote = client.quotes().get(&quote_url, Some(&gnap_token)).await?;
 
     let wallet_id = &wallet_address.id;
     let grant_request = GrantRequest {
@@ -52,11 +50,11 @@ async fn main() -> op_client::Result<()> {
         client: wallet_id.to_string(),
         interact: Some(InteractRequest {
             start: vec!["redirect".to_string()],
-            finish: InteractFinish {
+            finish: Some(InteractFinish {
                 method: "redirect".to_string(),
                 uri: "http://localhost".to_string(),
                 nonce: Uuid::new_v4().to_string(),
-            },
+            }),
         }),
     };
 

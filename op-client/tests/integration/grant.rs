@@ -6,7 +6,7 @@ use op_client::{
 
 #[tokio::test]
 async fn test_grant_flows() {
-    let mut test_setup = TestSetup::new().await.expect("Failed to create test setup");
+    let test_setup = TestSetup::new().await.expect("Failed to create test setup");
 
     let wallet_address = test_setup
         .auth_client
@@ -56,12 +56,10 @@ async fn test_grant_flows() {
         }
     };
 
-    test_setup.auth_client.access_token = Some(continue_.access_token.value);
-
     test_setup
         .auth_client
         .grant()
-        .cancel(&continue_.uri)
+        .cancel(&continue_.uri, Some(&continue_.access_token.value))
         .await
         .expect("Failed to cancel grant");
 }

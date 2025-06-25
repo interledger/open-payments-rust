@@ -11,12 +11,11 @@ async fn main() -> op_client::Result<()> {
     let gnap_token = get_env_var("INCOMING_PAYMENT_ACCESS_TOKEN")?;
     let incoming_payment_url = get_env_var("INCOMING_PAYMENT_URL")?;
 
-    let mut client = create_authenticated_client()?;
-    client.access_token = Some(gnap_token);
+    let client = create_authenticated_client()?;
 
     let payment = client
         .incoming_payments()
-        .complete(&incoming_payment_url)
+        .complete(&incoming_payment_url, Some(&gnap_token))
         .await?;
 
     println!("Completed incoming payment: {:#?}", payment);

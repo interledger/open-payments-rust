@@ -52,12 +52,13 @@ async fn get_access_token(test_setup: &mut TestSetup) -> String {
 #[tokio::test]
 async fn test_incoming_payment_flows() {
     let mut test_setup = TestSetup::new().await.expect("Failed to create test setup");
-    test_setup.auth_client.access_token = Some(get_access_token(&mut test_setup).await);
+
+    let access_token = get_access_token(&mut test_setup).await;
 
     let request = IncomingPaymentRequest {
         wallet_address: test_setup.wallet_address.clone(),
         incoming_amount: Some(Amount {
-            value: 100,
+            value: "100".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         }),
@@ -68,7 +69,11 @@ async fn test_incoming_payment_flows() {
     let incoming_payment = test_setup
         .auth_client
         .incoming_payments()
-        .create(&test_setup.resource_server_url, &request)
+        .create(
+            &test_setup.resource_server_url,
+            &request,
+            Some(&access_token),
+        )
         .await
         .expect("Failed to create incoming payment");
 
@@ -76,13 +81,13 @@ async fn test_incoming_payment_flows() {
     assert_eq!(incoming_payment.wallet_address, test_setup.wallet_address);
     assert_eq!(
         incoming_payment.incoming_amount.as_ref().unwrap().value,
-        100
+        "100"
     );
 
     let retrieved_payment = test_setup
         .auth_client
         .incoming_payments()
-        .get(&incoming_payment.id)
+        .get(&incoming_payment.id, Some(&access_token))
         .await
         .expect("Failed to get incoming payment");
 
@@ -98,6 +103,7 @@ async fn test_incoming_payment_flows() {
             None,
             Some(10),
             None,
+            Some(&access_token),
         )
         .await
         .expect("Failed to list incoming payments");
@@ -113,7 +119,7 @@ async fn test_incoming_payment_flows() {
     let complete_response = test_setup
         .auth_client
         .incoming_payments()
-        .complete(&incoming_payment.id)
+        .complete(&incoming_payment.id, Some(&access_token))
         .await
         .expect("Failed to complete incoming payment");
 

@@ -9,17 +9,15 @@ async fn main() -> op_client::Result<()> {
     init_logging();
     load_env()?;
 
-    let mut client = create_authenticated_client()?;
+    let client = create_authenticated_client()?;
 
     let gnap_token = get_env_var("CONTINUE_ACCESS_TOKEN")?;
     let continue_uri = get_env_var("CONTINUE_URI")?;
     let interact_ref = get_env_var("INTERACT_REF")?;
 
-    client.access_token = Some(gnap_token);
-
     let response = client
         .grant()
-        .continue_grant(&continue_uri, &interact_ref)
+        .continue_grant(&continue_uri, &interact_ref, Some(&gnap_token))
         .await?;
 
     match response {
