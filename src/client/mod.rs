@@ -28,6 +28,7 @@
 //!
 //! ```rust,no_run
 //! use open_payments::client::{AuthenticatedClient, ClientConfig, AuthenticatedResources, UnauthenticatedResources};
+//! use open_payments::types::{GrantRequest, AccessTokenRequest, AccessItem, IncomingPaymentAction, CreateIncomingPaymentRequest};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,10 +46,24 @@
 //!     // Example of how to use the client (would require actual server)
 //!     let wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
 //!
+//!     // Example of how to request a grant
+//!     let grant_request = GrantRequest {
+//!         access_token: AccessTokenRequest {
+//!             access: vec![AccessItem::IncomingPayment {
+//!                 actions: vec![IncomingPaymentAction::Create, IncomingPaymentAction::Read],
+//!                 identifier: None,
+//!             }],
+//!         },
+//!         client: "https://rafiki.money/alice".to_string(),
+//!         interact: None,
+//!     };
+//! 
+//!     let access_token = client.grant().request(&wallet_address.auth_server, &grant_request).await?;
+//!
 //!     // Example of creating a payment request
 //!     let resource_server = "https://ilp.rafiki.money";
 //!     let access_token = "your-access-token";
-//!     let payment_request = open_payments::types::resource::CreateIncomingPaymentRequest {
+//!     let payment_request = CreateIncomingPaymentRequest {
 //!         wallet_address: wallet_address.id,
 //!         incoming_amount: None,
 //!         expires_at: None,
