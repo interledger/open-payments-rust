@@ -1,5 +1,155 @@
-[workspace]
-resolver = "2"
-members = [
-    "op-types", "open-payments-snippets-rust", "op-client", "http-signature-utils"
-]
+[package]
+name = "open-payments"
+version = "0.1.0"
+edition = "2021"
+authors = ["Interledger <tech@interledger.org>"]
+description = "Open Payments Rust client library with types, HTTP client, and utilities"
+license = "Apache-2.0"
+repository = "https://github.com/interledger/open-payments-rust"
+keywords = ["open-payments", "interledger", "payments"]
+
+[features]
+default = []
+snippets = ["tokio", "dotenv", "tempfile", "uuid"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4.35", features = ["serde"] }
+serde_with = "3.7"
+thiserror = "2.0.12"
+
+# HTTP and networking
+base64 = "0.22.1"
+ed25519-dalek = { version = "2.0", features = ["rand_core"] }
+http = "1.3.1"
+reqwest = { version = "0.11", features = ["json"] }
+sha2 = "0.10"
+url = "2.4"
+
+# Additional dependencies for HTTP signatures
+pkcs8 = "0.10"
+pem = "3.0"
+log = "0.4"
+rand = "0.8"
+
+# Optional dependencies for snippets
+tokio = { version = "1.45.0", features = ["full"], optional = true }
+dotenv = { version = "0.15", optional = true }
+tempfile = { version = "3.20.0", optional = true }
+uuid = { version = "1.16", features = ["v4", "serde"], optional = true }
+
+[lib]
+name = "open_payments"
+path = "src/lib.rs"
+
+# Binary targets for snippets
+[[bin]]
+name = "grant-cancel"
+path = "src/snippets/grant/cancel.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "grant-continuation"
+path = "src/snippets/grant/continuation.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "grant-incoming-payment"
+path = "src/snippets/grant/incoming_payment.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "grant-outgoing-payment"
+path = "src/snippets/grant/outgoing_payment.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "grant-quote"
+path = "src/snippets/grant/quote.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "incoming-payment-complete"
+path = "src/snippets/incoming_payment/complete.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "incoming-payment-create"
+path = "src/snippets/incoming_payment/create.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "incoming-payment-get"
+path = "src/snippets/incoming_payment/get.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "incoming-payment-list"
+path = "src/snippets/incoming_payment/list.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "outgoing-payment-create"
+path = "src/snippets/outgoing_payment/create.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "outgoing-payment-get"
+path = "src/snippets/outgoing_payment/get.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "outgoing-payment-list"
+path = "src/snippets/outgoing_payment/list.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "quote-create"
+path = "src/snippets/quote/create.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "quote-create-with-debit-amount"
+path = "src/snippets/quote/create_with_debit_amount.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "quote-create-with-receive-amount"
+path = "src/snippets/quote/create_with_receive_amount.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "quote-get"
+path = "src/snippets/quote/get.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "token-revoke"
+path = "src/snippets/token/revoke.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "token-rotate"
+path = "src/snippets/token/rotate.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "wallet-address-get"
+path = "src/snippets/wallet_address/get.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "wallet-address-get-keys"
+path = "src/snippets/wallet_address/get_keys.rs"
+required-features = ["snippets"]
+
+[[bin]]
+name = "http-signature-example"
+path = "src/http_signature/examples/generate_signature.rs"
+
+[dev-dependencies]
+tokio = { version = "1.45.0", features = ["full"] }
+dotenv = "0.15"
+tempfile = "3.20.0"
+uuid = { version = "1.16", features = ["v4", "serde"] }
