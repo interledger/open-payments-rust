@@ -41,7 +41,7 @@ This project and everyone participating in it is governed by our [Code of Conduc
 
 ### Prerequisites
 
-- Rust 1.43.0 or later
+- Rust 1.43.1 or later
 - Git
 
 ### Building

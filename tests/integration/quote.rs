@@ -64,7 +64,7 @@ async fn create_incoming_payment(test_setup: &TestSetup, access_token: &str) -> 
         .create(
             &test_setup.resource_server_url,
             &request,
-            Some(&access_token),
+            Some(access_token),
         )
         .await
         .expect("Failed to create incoming payment");
