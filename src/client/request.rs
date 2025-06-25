@@ -229,7 +229,7 @@ impl AuthenticatedRequest<'_> {
     ///
     /// This method generates `Content-Length` and `Content-Digest` headers for
     /// requests with body content. The content digest uses SHA-512 hashing
-    /// as required by the Open Payments protocol.
+    /// as required by the Open Payments specification.
     ///
     /// ## Arguments
     ///

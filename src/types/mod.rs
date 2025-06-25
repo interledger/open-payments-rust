@@ -1,6 +1,6 @@
 //! # Open Payments Types
 //!
-//! This module contains all the type definitions for the Open Payments protocol.
+//! This module contains all the type definitions for the Open Payments specifications.
 //! These types represent the data structures used in API requests and responses,
 //! as well as the core concepts of the Open Payments ecosystem.
 //!
@@ -23,22 +23,24 @@
 //! ### Common Types
 //!
 //! - [`Amount`] - Amounts of a specific currency and scale
-//! - [`PageInfo`] - Pagination information
-//! - [`PaginatedResponse`] - Generic paginated response wrapper
+//! - [`Receiver`] - Receiver of a payment e.g. incoming payment
+//! - [`WalletAddressUri`] - Wallet address descriptor
+//! - [`Interval`] - ISO 8601 defined interval
 //!
 //! ## Example Usage
 //!
 //! ```rust
 //! use open_payments::types::{
 //!     Amount, GrantRequest, AccessTokenRequest, AccessItem, QuoteAction,
-//!     CreateIncomingPaymentRequest, WalletAddress
+//!     CreateIncomingPaymentRequest, WalletAddress, IncomingPaymentAction
 //! };
 //!
-//! // Create a grant request for quote access
+//! // Create a grant request for incoming payment
 //! let grant_request = GrantRequest {
 //!     access_token: AccessTokenRequest {
-//!         access: vec![AccessItem::Quote {
-//!             actions: vec![QuoteAction::Create, QuoteAction::Read],
+//!         access: vec![AccessItem::IncomingPayment {
+//!             actions: vec![IncomingPaymentAction::Create, IncomingPaymentAction::Read],
+//!             identifier: None,
 //!         }],
 //!     },
 //!     client: "https://rafiki.money/alice".to_string(),

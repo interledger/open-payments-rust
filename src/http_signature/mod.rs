@@ -2,7 +2,7 @@
 //!
 //! This module provides utilities for creating and validating HTTP message signatures
 //! according to the [HTTP Message Signatures](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-message-signatures) specification.
-//! It supports Ed25519 signing and is designed for use with the Open Payments protocol.
+//! It supports Ed25519 signing and is designed for use with the Open Payments specification.
 //!
 //! ## Features
 //!

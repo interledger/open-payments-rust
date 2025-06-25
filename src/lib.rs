@@ -1,6 +1,6 @@
 //! # Open Payments Rust Client
 //!
-//! A Rust client library for the Open Payments protocol, providing types and HTTP signatures utilities for building Open Payments applications.
+//! A Rust client library for the Open Payments specification, providing types and HTTP signatures utilities for building Open Payments applications.
 //!
 //! ## Features
 //!
