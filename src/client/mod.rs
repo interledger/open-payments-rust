@@ -57,7 +57,7 @@
 //!         client: "https://rafiki.money/alice".to_string(),
 //!         interact: None,
 //!     };
-//! 
+//!
 //!     let access_token = client.grant().request(&wallet_address.auth_server, &grant_request).await?;
 //!
 //!     // Example of creating a payment request
