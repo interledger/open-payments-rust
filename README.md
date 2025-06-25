@@ -23,12 +23,12 @@ APIs.
 This repository hosts the Open API Specifications of the two APIs which are published along with additional documentation at
 https://openpayments.dev.
 
-Additionally, this repository also contains several Rust crates:
+Additionally, this crate contains several modules:
 
-- [`op-client`](./op-client) contains a Rust Open Payments SDK to make requests via the Open Payments API, as well as re-exporting Rust types for the API from `op-types`.
-- [`op-types`](./op-types) contains Rust types for the API.
-- [`http-signature-utils`](./http-signature-utils) provides tools for working with [HTTP Message Signatures](https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures).
-- [`open-payments-snippets-rust`](./open-payments-snippets-rust) contains examples of Rust client usage for getting accustomed to the Open Payments flow.
+- [`client`](./client) contains a Rust client to make requests via the Open Payments API, as well as re-exporting Rust types for the API from `op-types`.
+- [`types`](./types) contains Rust types for the API.
+- [`snippets`](./snippets) contains examples of Rust client usage for getting accustomed to the Open Payments flow.
+- [`http-signature`](./http-signature) provides tools for working with [HTTP Message Signatures](https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures).
 
 ## Dependencies
 
@@ -69,21 +69,21 @@ More phone numbers: https://tel.meet/htd-eefo-ovn?hs=5
 
 ### Environment Setup
 
-Clone the repository and build all crates:
+Clone the repository and build:
 
 ```sh
 git clone https://github.com/interledger/open-payments-rust.git
 cd open-payments-rust
-cargo build --workspace
+cargo build
 ```
 
 ### Running Examples
 
-See [open-payments-snippets-rust/README.md](./open-payments-snippets-rust/README.md) for details on running code snippets and payment flows. For example, to run a snippet:
+See [op-snippets/README.md](./op-snippets/README.md) for details on running code snippets and payment flows. For example, to run a snippet:
 
 ```sh
-cd open-payments-snippets-rust
-cargo run --bin grant-incoming-payment
+cd src/snippets
+cargo run --features snippets --bin grant-incoming-payment
 ```
 
 ### Useful commands
@@ -93,11 +93,11 @@ cargo run --bin grant-incoming-payment
 cargo fmt --all
 
 # Run all tests:
-cargo test --workspace
+cargo test
 
 # Check code for warnings and errors:
-cargo check --workspace
+cargo check
 
-# Build all crates:
-cargo build --workspace
+# Build crate:
+cargo build
 ```
