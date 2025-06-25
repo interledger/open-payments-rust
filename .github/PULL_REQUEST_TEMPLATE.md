@@ -1,7 +1,3 @@
-<!--
-If updating the specs in /openapi, you can test the changes by opening a PR and checking the Netlify deploy preview
--->
-
 ## Changes proposed in this pull request
 
 <!--
