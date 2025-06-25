@@ -101,7 +101,7 @@ impl AuthenticatedOpenPaymentsClient {
 /// use open_payments::client::UnauthenticatedClient;
 ///
 /// let client = UnauthenticatedClient::new();
-/// let wallet_address = client.wallet_address().get("https://resource-server.com/").await?;
+/// let wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
 /// ```
 pub struct UnauthenticatedOpenPaymentsClient {
     pub http_client: ReqwestClient,

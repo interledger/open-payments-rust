@@ -100,4 +100,13 @@ cargo check
 
 # Build crate:
 cargo build
+
+# Generate documentation:
+cargo doc --no-deps
+
+# Generate documentation and open in browser:
+cargo doc --no-deps --open
+
+# Generate documentation with snippets feature:
+cargo doc --features snippets --no-deps
 ```

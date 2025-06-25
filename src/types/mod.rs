@@ -41,13 +41,13 @@
 //!             actions: vec![QuoteAction::Create, QuoteAction::Read],
 //!         }],
 //!     },
-//!     client: "https://example.com".to_string(),
+//!     client: "https://rafiki.money/alice".to_string(),
 //!     interact: None,
 //! };
 //!
 //! // Create an incoming payment request
 //! let payment_request = CreateIncomingPaymentRequest {
-//!     wallet_address: "https://example.com/.well-known/pay".to_string(),
+//!     wallet_address: "https://rafiki.money/alice".to_string(),
 //!     incoming_amount: Some(Amount {
 //!         value: "1000".to_string(),
 //!         asset_code: "EUR".to_string(),

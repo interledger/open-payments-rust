@@ -7,7 +7,6 @@ description = "Open Payments Rust client library with types, HTTP client, and ut
 license = "Apache-2.0"
 repository = "https://github.com/interledger/open-payments-rust"
 keywords = ["open-payments", "interledger", "payments"]
-categories = ["web-programming"]
 
 [features]
 default = []

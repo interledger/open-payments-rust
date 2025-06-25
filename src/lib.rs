@@ -28,7 +28,7 @@
 //!     let client = AuthenticatedClient::new(config)?;
 //!
 //!     // Use the client to interact with Open Payments resources
-//!     let wallet_address_url = "https://example.com/.well-known/pay";
+//!     let wallet_address_url = "https://rafiki.money/alice";
 //!     let wallet_address = client.wallet_address().get(wallet_address_url).await?;
 //!
 //!     println!("Wallet address: {:?}", wallet_address);
@@ -61,7 +61,7 @@
 //!     let client = AuthenticatedClient::new(config)?;
 //!     
 //!     let request = CreateIncomingPaymentRequest {
-//!         wallet_address: "https://example.com/.well-known/pay".to_string(),
+//!         wallet_address: "https://rafiki.money/alice".to_string(),
 //!         incoming_amount: Some(Amount {
 //!             value: "1000".to_string(),
 //!             asset_code: "EUR".to_string(),
@@ -90,7 +90,7 @@
 //!
 //! let mut request = Request::new(Some("test body".to_string()));
 //! *request.method_mut() = Method::POST;
-//! *request.uri_mut() = Uri::from_static("http://example.com/");
+//! *request.uri_mut() = Uri::from_static("https://ilp.rafiki.money/incoming-payments");
 //!
 //! let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
 //! let options = SignOptions::new(&request, &signing_key, "test-key".to_string());

@@ -40,12 +40,15 @@
 //!     let client = AuthenticatedClient::new(config)?;
 //!
 //!     // Get wallet address
-//!     let wallet_address = client.wallet_address().get("https://example.com/.well-known/pay").await?;
+//!     let wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
 //!
 //!     // Create an incoming payment
+//!     let resource_server = "https://ilp.rafiki.money";
+//!     let access_token = "your-access-token";
+//!     
 //!     let payment = client
 //!         .incoming_payments()
-//!         .create(&resource_server_url, &request, Some(&access_token))
+//!         .create(resource_server, &payment_request, Some(access_token))
 //!         .await?;
 //!
 //!     Ok(())
