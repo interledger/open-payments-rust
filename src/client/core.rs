@@ -21,16 +21,23 @@ pub trait BaseClient {
 ///
 /// ## Example
 ///
-/// ```rust
-/// use open_payments::client::{AuthenticatedClient, ClientConfig};
+/// ```rust,no_run
+/// use open_payments::client::{AuthenticatedClient, ClientConfig, AuthenticatedResources, UnauthenticatedResources};
 ///
-/// let config = ClientConfig {
-///     private_key_path: "path/to/private-key.pem".into(),
-///     key_id: "my-key-id".to_string(),
-///     jwks_path: Some("path/to/jwks.json".into()),
-/// };
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     // In a real application, you would use actual file paths
+///     let config = ClientConfig {
+///         private_key_path: "path/to/private-key.pem".into(),
+///         key_id: "my-key-id".to_string(),
+///         jwks_path: Some("path/to/jwks.json".into()),
+///     };
 ///
-/// let client = AuthenticatedClient::new(config)?;
+///     // This would fail in a real scenario if the files don't exist
+///     // but demonstrates the API usage
+///     let _client = AuthenticatedClient::new(config)?;
+///     Ok(())
+/// }
 /// ```
 pub struct AuthenticatedOpenPaymentsClient {
     /// The underlying HTTP client for making requests.
@@ -97,11 +104,17 @@ impl AuthenticatedOpenPaymentsClient {
 ///
 /// ## Example
 ///
-/// ```rust
-/// use open_payments::client::UnauthenticatedClient;
+/// ```rust,no_run
+/// use open_payments::client::{UnauthenticatedClient, UnauthenticatedResources};
 ///
-/// let client = UnauthenticatedClient::new();
-/// let wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let client = UnauthenticatedClient::new();
+///     // This would make an actual HTTP request in a real scenario
+///     // but demonstrates the API usage
+///     let _wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
+///     Ok(())
+/// }
 /// ```
 pub struct UnauthenticatedOpenPaymentsClient {
     pub http_client: ReqwestClient,

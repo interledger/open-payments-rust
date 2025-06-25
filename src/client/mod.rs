@@ -26,30 +26,40 @@
 //!
 //! ## Example Usage
 //!
-//! ```rust
-//! use open_payments::client::{AuthenticatedClient, ClientConfig};
+//! ```rust,no_run
+//! use open_payments::client::{AuthenticatedClient, ClientConfig, AuthenticatedResources, UnauthenticatedResources};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // In a real application, you would use actual file paths
 //!     let config = ClientConfig {
 //!         private_key_path: "path/to/private-key.pem".into(),
 //!         key_id: "my-key-id".to_string(),
 //!         jwks_path: Some("path/to/jwks.json".into()),
 //!     };
 //!
+//!     // This would fail in a real scenario if the files don't exist
+//!     // but demonstrates the API usage
 //!     let client = AuthenticatedClient::new(config)?;
 //!
-//!     // Get wallet address
+//!     // Example of how to use the client (would require actual server)
 //!     let wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
 //!
-//!     // Create an incoming payment
+//!     // Example of creating a payment request
 //!     let resource_server = "https://ilp.rafiki.money";
 //!     let access_token = "your-access-token";
+//!     let payment_request = open_payments::types::resource::CreateIncomingPaymentRequest {
+//!         wallet_address: wallet_address.id,
+//!         incoming_amount: None,
+//!         expires_at: None,
+//!         metadata: None,
+//!     };
 //!     
+//!     // This would make actual HTTP requests in a real scenario
 //!     let payment = client
-//!         .incoming_payments()
-//!         .create(resource_server, &payment_request, Some(access_token))
-//!         .await?;
+//!          .incoming_payments()
+//!          .create(resource_server, &payment_request, Some(access_token))
+//!          .await?;
 //!
 //!     Ok(())
 //! }

@@ -11,27 +11,27 @@
 //!
 //! ## Quick Start
 //!
-//! ```rust
-//! use open_payments::client::{AuthenticatedClient, ClientConfig};
+//! ```rust,no_run
+//! use open_payments::client::{AuthenticatedClient, ClientConfig, AuthenticatedResources, UnauthenticatedResources};
 //! use open_payments::types::{IncomingPayment, OutgoingPayment};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Create a client configuration
+//!     // In a real application, you would use actual file paths
 //!     let config = ClientConfig {
 //!         private_key_path: "path/to/private-key.pem".into(),
 //!         key_id: "my-key-id".to_string(),
 //!         jwks_path: Some("path/to/jwks.json".into()),
 //!     };
 //!
-//!     // Create an authenticated client
+//!     // This would fail in a real scenario if the files don't exist
+//!     // but demonstrates the API usage
 //!     let client = AuthenticatedClient::new(config)?;
 //!
 //!     // Use the client to interact with Open Payments resources
 //!     let wallet_address_url = "https://rafiki.money/alice";
 //!     let wallet_address = client.wallet_address().get(wallet_address_url).await?;
 //!
-//!     println!("Wallet address: {:?}", wallet_address);
 //!     Ok(())
 //! }
 //! ```
@@ -51,13 +51,22 @@
 //!
 //! ### Creating an Incoming Payment
 //!
-//! ```rust
-//! use open_payments::client::AuthenticatedClient;
+//! ```rust,no_run
+//! use open_payments::client::{AuthenticatedClient, AuthenticatedResources};
 //! use open_payments::types::{Amount, resource::CreateIncomingPaymentRequest};
 //! use chrono::{Duration, Utc};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // In a real application, you would use actual file paths
+//!     let config = open_payments::client::ClientConfig {
+//!         private_key_path: "path/to/private-key.pem".into(),
+//!         key_id: "my-key-id".to_string(),
+//!         jwks_path: Some("path/to/jwks.json".into()),
+//!     };
+//!     
+//!     // This would fail in a real scenario if the files don't exist
+//!     // but demonstrates the API usage
 //!     let client = AuthenticatedClient::new(config)?;
 //!     
 //!     let request = CreateIncomingPaymentRequest {
@@ -71,12 +80,14 @@
 //!         metadata: None,
 //!     };
 //!
+//!     let resource_server_url = "https://ilp.rafiki.money";
+//!     let access_token = "your-access-token";
+//!     
 //!     let payment = client
 //!         .incoming_payments()
 //!         .create(&resource_server_url, &request, Some(&access_token))
 //!         .await?;
 //!
-//!     println!("Created payment: {:?}", payment);
 //!     Ok(())
 //! }
 //! ```
@@ -88,16 +99,19 @@
 //! use http::{Request, Method, Uri};
 //! use ed25519_dalek::SigningKey;
 //!
-//! let mut request = Request::new(Some("test body".to_string()));
-//! *request.method_mut() = Method::POST;
-//! *request.uri_mut() = Uri::from_static("https://ilp.rafiki.money/incoming-payments");
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let mut request = Request::new(Some("test body".to_string()));
+//!     *request.method_mut() = Method::POST;
+//!     *request.uri_mut() = Uri::from_static("https://ilp.rafiki.money/incoming-payments");
 //!
-//! let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
-//! let options = SignOptions::new(&request, &signing_key, "test-key".to_string());
-//! let headers = create_signature_headers(options)?;
+//!     let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
+//!     let options = SignOptions::new(&request, &signing_key, "test-key".to_string());
+//!     let headers = create_signature_headers(options)?;
 //!
-//! println!("Signature: {}", headers.signature);
-//! println!("Signature-Input: {}", headers.signature_input);
+//!     println!("Signature: {}", headers.signature);
+//!     println!("Signature-Input: {}", headers.signature_input);
+//!     Ok(())
+//! }
 //! ```
 //!
 //! ## License
