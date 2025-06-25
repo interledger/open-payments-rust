@@ -45,7 +45,7 @@ jobs:
       run: cargo test --doc
 
     - name: Build with snippets feature
-      run: cargo build --features snippets
+      run: cargo build --release --features snippets
 
   docs:
     name: Build documentation
