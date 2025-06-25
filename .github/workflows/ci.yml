@@ -51,18 +51,13 @@ jobs:
         chmod 600 private.key
         
         # Create .env file with all env vars
-        echo "OPEN_PAYMENTS_SERVER_URL=${{ secrets.OPEN_PAYMENTS_SERVER_URL }}" >> .env
-        echo "OPEN_PAYMENTS_WALLET_ADDRESS=${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}" >> .env
-        echo "OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}" >> .env
-        echo "OPEN_PAYMENTS_PRIVATE_KEY_PATH=./private.key" >> .env
+        echo "OPEN_PAYMENTS_SERVER_URL=${{ secrets.OPEN_PAYMENTS_SERVER_URL }}" >> tests/integration/.env
+        echo "OPEN_PAYMENTS_WALLET_ADDRESS=${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}" >> tests/integration/.env
+        echo "OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}" >> tests/integration/.env
+        echo "OPEN_PAYMENTS_PRIVATE_KEY_PATH=./private.key" >> tests/integration/.env
 
     - name: Run integration tests
       run: cargo test --test integration --all-features
-      env:
-        OPEN_PAYMENTS_SERVER_URL: ${{ secrets.OPEN_PAYMENTS_SERVER_URL }}
-        OPEN_PAYMENTS_WALLET_ADDRESS: ${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}
-        OPEN_PAYMENTS_KEY_ID: ${{ secrets.OPEN_PAYMENTS_KEY_ID }}
-        OPEN_PAYMENTS_PRIVATE_KEY_PATH: ./private.key
 
     - name: Build with snippets feature
       run: cargo build --features snippets
