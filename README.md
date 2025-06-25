@@ -110,3 +110,19 @@ cargo doc --no-deps --open
 # Generate documentation with snippets feature:
 cargo doc --features snippets --no-deps
 ```
+
+## Adding crate as dependency
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+open-payments = "0.1.1"
+```
+
+For examples and snippets:
+```toml
+[dependencies]
+open-payments = { version = "0.1.1", features = ["snippets"] }
+```
+```
