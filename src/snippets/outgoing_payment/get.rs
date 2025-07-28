@@ -15,6 +15,6 @@ async fn main() -> open_payments::client::Result<()> {
         .get(&outgoing_payment_url, Some(&gnap_token))
         .await?;
 
-    println!("Outgoing payment: {:#?}", payment);
+    println!("Outgoing payment: {payment:#?}");
     Ok(())
 }

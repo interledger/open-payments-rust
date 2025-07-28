@@ -18,6 +18,7 @@ pub struct IncomingPayment {
     pub metadata: Option<Value>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub methods: Option<Vec<PaymentMethod>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -71,6 +72,8 @@ pub struct OutgoingPayment {
     pub receive_amount: Amount,
     pub debit_amount: Amount,
     pub sent_amount: Amount,
+    pub grant_spent_debit_amount: Amount,
+    pub grant_spent_receive_amount: Amount,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Value>,
     pub created_at: DateTime<Utc>,

@@ -78,13 +78,13 @@ impl AuthenticatedOpenPaymentsClient {
         let http_client = ReqwestClient::new();
 
         let signing_key = load_or_generate_key(&config.private_key_path).map_err(|e| {
-            OpClientError::Signature(format!("Failed to load or generate signing key: {}", e))
+            OpClientError::Signature(format!("Failed to load or generate signing key: {e}"))
         })?;
 
         if let Some(ref jwks_path) = config.jwks_path {
             let jwks_json = Jwk::generate_jwks_json(&signing_key, &config.key_id);
             Jwk::save_jwks(&jwks_json, jwks_path).map_err(|e| {
-                OpClientError::Signature(format!("Failed to save JWK to file: {}", e))
+                OpClientError::Signature(format!("Failed to save JWK to file: {e}"))
             })?;
         }
 

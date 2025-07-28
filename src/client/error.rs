@@ -125,7 +125,7 @@ impl From<reqwest::Error> for OpClientError {
     /// This implementation allows the client to automatically convert reqwest errors
     /// into the unified error type, providing consistent error handling across the library.
     fn from(err: reqwest::Error) -> Self {
-        OpClientError::Http(format!("{}", err))
+        OpClientError::Http(format!("{err}"))
     }
 }
 

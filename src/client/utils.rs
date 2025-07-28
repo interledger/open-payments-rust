@@ -48,7 +48,7 @@ pub fn get_resource_server_url(wallet_address_url: &str) -> Result<String> {
     if resource_server_path.is_empty() {
         resource_url.set_path("/");
     } else {
-        resource_url.set_path(&format!("/{}", resource_server_path));
+        resource_url.set_path(&format!("/{resource_server_path}"));
     }
 
     Ok(resource_url.to_string())

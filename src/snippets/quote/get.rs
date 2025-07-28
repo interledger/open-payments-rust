@@ -12,6 +12,6 @@ async fn main() -> open_payments::client::Result<()> {
 
     let quote = client.quotes().get(&quote_url, Some(&gnap_token)).await?;
 
-    println!("Quote: {:#?}", quote);
+    println!("Quote: {quote:#?}");
     Ok(())
 }
