@@ -26,8 +26,8 @@ async fn main() -> open_payments::client::Result<()> {
     let quote = client.quotes().get(&quote_url, Some(&gnap_token)).await?;
 
     let wallet_id = &wallet_address.id;
-    let grant_request = GrantRequest {
-        access_token: AccessTokenRequest {
+    let grant_request = GrantRequest::new(
+        AccessTokenRequest {
             access: vec![AccessItem::OutgoingPayment {
                 actions: vec![
                     OutgoingPaymentAction::Read,
@@ -44,8 +44,7 @@ async fn main() -> open_payments::client::Result<()> {
                 }),
             }],
         },
-        client: wallet_id.to_string(),
-        interact: Some(InteractRequest {
+        Some(InteractRequest {
             start: vec!["redirect".to_string()],
             finish: Some(InteractFinish {
                 method: "redirect".to_string(),
@@ -53,7 +52,7 @@ async fn main() -> open_payments::client::Result<()> {
                 nonce: Uuid::new_v4().to_string(),
             }),
         }),
-    };
+    );
 
     println!(
         "Grant request JSON: {}",

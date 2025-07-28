@@ -16,15 +16,14 @@ async fn main() -> open_payments::client::Result<()> {
     let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
     let wallet_address = client.wallet_address().get(&wallet_address_url).await?;
 
-    let grant_request = GrantRequest {
-        access_token: AccessTokenRequest {
+    let grant_request = GrantRequest::new(
+        AccessTokenRequest {
             access: vec![AccessItem::Quote {
                 actions: vec![QuoteAction::Create, QuoteAction::Read, QuoteAction::ReadAll],
             }],
         },
-        client: wallet_address.id,
-        interact: None,
-    };
+        None,
+    );
 
     println!(
         "Grant request JSON: {}",
