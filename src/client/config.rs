@@ -43,6 +43,11 @@ pub struct ClientConfig {
     ///
     /// Example: `Some(PathBuf::from("keys/jwks.json"))`
     pub jwks_path: Option<PathBuf>,
+
+    /// URL of the wallet address to use for the client.
+    ///
+    /// This is the URL of the wallet address that will be used to send and receive payments.
+    pub wallet_address_url: String,
 }
 
 impl Default for ClientConfig {
@@ -68,7 +73,8 @@ impl Default for ClientConfig {
         Self {
             key_id: "".into(),
             private_key_path: PathBuf::from("private.key"),
-            jwks_path: Some(PathBuf::from("jwks.json")),
+            jwks_path: None,
+            wallet_address_url: "".into(),
         }
     }
 }

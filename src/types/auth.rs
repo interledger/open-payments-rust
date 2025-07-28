@@ -81,9 +81,19 @@ pub struct AccessTokenResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GrantRequest {
     pub access_token: AccessTokenRequest,
-    pub client: String,
+    pub(crate) client: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interact: Option<InteractRequest>,
+}
+
+impl GrantRequest {
+    pub fn new(access_token: AccessTokenRequest, interact: Option<InteractRequest>) -> Self {
+        Self {
+            access_token,
+            client: String::new(), // Will be set by the client internally
+            interact,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

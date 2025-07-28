@@ -15,15 +15,17 @@ pub fn get_env_var(key: &str) -> Result<String> {
 }
 
 pub fn create_authenticated_client() -> Result<AuthenticatedClient> {
+    let wallet_address_url = get_env_var("WALLET_ADDRESS_URL")?;
     let private_key_path = PathBuf::from(get_env_var("PRIVATE_KEY_PATH")?);
     let key_id = get_env_var("KEY_ID")?;
     let key_id_clone = key_id.clone();
     let jwks_path = get_env_var("JWKS_PATH").map(PathBuf::from).ok();
 
     let config = ClientConfig {
-        private_key_path,
         key_id,
+        private_key_path,
         jwks_path,
+        wallet_address_url,
     };
 
     let client = AuthenticatedClient::new(config)

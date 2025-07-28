@@ -32,6 +32,7 @@ impl TestSetup {
         let config = ClientConfig {
             key_id,
             private_key_path: private_key_path.into(),
+            wallet_address_url: wallet_address.clone(),
             ..Default::default()
         };
 
