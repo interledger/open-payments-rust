@@ -13,9 +13,9 @@ fn main() -> Result<(), HttpSignatureError> {
     *request.uri_mut() = Uri::from_static("http://example.com/");
     request.headers_mut().insert(
         "Content-Type",
-        "application/json".parse().map_err(|e| {
-            HttpSignatureError::Other(format!("Failed to parse content type: {}", e))
-        })?,
+        "application/json"
+            .parse()
+            .map_err(|e| HttpSignatureError::Other(format!("Failed to parse content type: {e}")))?,
     );
 
     // Generate a signing key

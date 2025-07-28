@@ -136,11 +136,8 @@ impl AuthenticatedRequest<'_> {
         if let Some(token) = access_token {
             req.headers_mut().insert(
                 "Authorization",
-                format!("GNAP {}", token).parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!(
-                        "Failed to parse authorization header: {}",
-                        e
-                    ))
+                format!("GNAP {token}").parse().map_err(|e| {
+                    OpClientError::HeaderParse(format!("Failed to parse authorization header: {e}"))
                 })?,
             );
         }
@@ -149,13 +146,13 @@ impl AuthenticatedRequest<'_> {
             req.headers_mut().insert(
                 "Content-Length",
                 content_length.to_string().parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!("Failed to parse content length: {}", e))
+                    OpClientError::HeaderParse(format!("Failed to parse content length: {e}"))
                 })?,
             );
             req.headers_mut().insert(
                 "Content-Digest",
                 content_digest.parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!("Failed to parse content digest: {}", e))
+                    OpClientError::HeaderParse(format!("Failed to parse content digest: {e}"))
                 })?,
             );
         }
@@ -165,13 +162,13 @@ impl AuthenticatedRequest<'_> {
         req.headers_mut().insert(
             "Signature",
             signature.parse().map_err(|e| {
-                OpClientError::HeaderParse(format!("Failed to parse signature header: {}", e))
+                OpClientError::HeaderParse(format!("Failed to parse signature header: {e}"))
             })?,
         );
         req.headers_mut().insert(
             "Signature-Input",
             signature_input.parse().map_err(|e| {
-                OpClientError::HeaderParse(format!("Failed to parse signature input header: {}", e))
+                OpClientError::HeaderParse(format!("Failed to parse signature input header: {e}"))
             })?,
         );
 
@@ -196,20 +193,18 @@ impl AuthenticatedRequest<'_> {
         // Convert to http::Request for signing
         let mut http_req = Request::new(self.body.clone());
         *http_req.method_mut() = HttpMethod::from_bytes(req.method().as_str().as_bytes())
-            .map_err(|e| OpClientError::HeaderParse(format!("Converting HTTP method: {}", e)))?;
+            .map_err(|e| OpClientError::HeaderParse(format!("Converting HTTP method: {e}")))?;
         *http_req.uri_mut() = req
             .url()
             .as_str()
             .parse()
-            .map_err(|e| OpClientError::HeaderParse(format!("Converting URL to URI: {}", e)))?;
+            .map_err(|e| OpClientError::HeaderParse(format!("Converting URL to URI: {e}")))?;
 
         for (key, value) in req.headers() {
-            let header_name = HeaderName::from_bytes(key.as_str().as_bytes()).map_err(|e| {
-                OpClientError::HeaderParse(format!("Converting header name: {}", e))
-            })?;
-            let header_value = HeaderValue::from_bytes(value.as_bytes()).map_err(|e| {
-                OpClientError::HeaderParse(format!("Converting header value: {}", e))
-            })?;
+            let header_name = HeaderName::from_bytes(key.as_str().as_bytes())
+                .map_err(|e| OpClientError::HeaderParse(format!("Converting header name: {e}")))?;
+            let header_value = HeaderValue::from_bytes(value.as_bytes())
+                .map_err(|e| OpClientError::HeaderParse(format!("Converting header value: {e}")))?;
             http_req.headers_mut().insert(header_name, header_value);
         }
 
@@ -246,7 +241,7 @@ impl AuthenticatedRequest<'_> {
                 let mut hasher = Sha512::new();
                 hasher.update(body.as_bytes());
                 let digest = general_purpose::STANDARD.encode(hasher.finalize());
-                let content_digest = format!("sha-512=:{}:", digest);
+                let content_digest = format!("sha-512=:{digest}:");
 
                 Some((content_length, content_digest))
             }

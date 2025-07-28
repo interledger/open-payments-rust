@@ -76,8 +76,8 @@ async fn main() -> open_payments::client::Result<()> {
             interact,
             continue_,
         } => {
-            println!("Received interact: {:#?}", interact);
-            println!("Received continue: {:#?}", continue_);
+            println!("Received interact: {interact:#?}");
+            println!("Received continue: {continue_:#?}");
         }
     }
 

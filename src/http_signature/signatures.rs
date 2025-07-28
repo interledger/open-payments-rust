@@ -64,7 +64,7 @@ fn create_signature_base_string(
                 .unwrap_or(""),
             _ => "",
         };
-        parts.push(format!("\"{}\": {}", component, value));
+        parts.push(format!("\"{component}\": {value}"));
     }
 
     let sig_params = format!(
@@ -73,7 +73,7 @@ fn create_signature_base_string(
         created,
         keyid
     );
-    parts.push(format!("\"@signature-params\": {}", sig_params));
+    parts.push(format!("\"@signature-params\": {sig_params}"));
 
     parts.join("\n")
 }

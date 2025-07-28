@@ -15,6 +15,6 @@ async fn main() -> open_payments::client::Result<()> {
         .complete(&incoming_payment_url, Some(&gnap_token))
         .await?;
 
-    println!("Completed incoming payment: {:#?}", payment);
+    println!("Completed incoming payment: {payment:#?}");
     Ok(())
 }
