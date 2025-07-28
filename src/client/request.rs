@@ -137,10 +137,7 @@ impl AuthenticatedRequest<'_> {
             req.headers_mut().insert(
                 "Authorization",
                 format!("GNAP {token}").parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!(
-                        "Failed to parse authorization header: {}",
-                        e
-                    ))
+                    OpClientError::HeaderParse(format!("Failed to parse authorization header: {e}"))
                 })?,
             );
         }
