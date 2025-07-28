@@ -36,16 +36,15 @@
 //! };
 //!
 //! // Create a grant request for incoming payment
-//! let grant_request = GrantRequest {
-//!     access_token: AccessTokenRequest {
+//! let grant_request = GrantRequest::new(
+//!     AccessTokenRequest {
 //!         access: vec![AccessItem::IncomingPayment {
 //!             actions: vec![IncomingPaymentAction::Create, IncomingPaymentAction::Read],
 //!             identifier: None,
 //!         }],
 //!     },
-//!     client: "https://rafiki.money/alice".to_string(),
-//!     interact: None,
-//! };
+//!     None,
+//! );
 //!
 //! // Create an incoming payment request
 //! let payment_request = CreateIncomingPaymentRequest {

@@ -37,6 +37,7 @@
 //!         private_key_path: "path/to/private-key.pem".into(),
 //!         key_id: "my-key-id".to_string(),
 //!         jwks_path: Some("path/to/jwks.json".into()),
+//!         wallet_address_url: "https://rafiki.money/alice".into(),
 //!     };
 //!
 //!     // This would fail in a real scenario if the files don't exist
@@ -47,16 +48,15 @@
 //!     let wallet_address = client.wallet_address().get("https://rafiki.money/alice").await?;
 //!
 //!     // Example of how to request a grant
-//!     let grant_request = GrantRequest {
-//!         access_token: AccessTokenRequest {
+//!     let grant_request = GrantRequest::new(
+//!         AccessTokenRequest {
 //!             access: vec![AccessItem::IncomingPayment {
 //!                 actions: vec![IncomingPaymentAction::Create, IncomingPaymentAction::Read],
 //!                 identifier: None,
 //!             }],
 //!         },
-//!         client: "https://rafiki.money/alice".to_string(),
-//!         interact: None,
-//!     };
+//!         None,
+//!     );
 //!
 //!     let access_token = client.grant().request(&wallet_address.auth_server, &grant_request).await?;
 //!

@@ -31,6 +31,7 @@ pub trait BaseClient {
 ///         private_key_path: "path/to/private-key.pem".into(),
 ///         key_id: "my-key-id".to_string(),
 ///         jwks_path: Some("path/to/jwks.json".into()),
+///         wallet_address_url: "https://rafiki.money/alice".into(),
 ///     };
 ///
 ///     // This would fail in a real scenario if the files don't exist

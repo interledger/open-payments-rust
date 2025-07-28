@@ -18,6 +18,7 @@ use std::path::PathBuf;
 ///     key_id: "my-key-2024".to_string(),
 ///     private_key_path: PathBuf::from("keys/private.pem"),
 ///     jwks_path: Some(PathBuf::from("keys/jwks.json")),
+///     wallet_address_url: "https://rafiki.money/alice".into(),
 /// };
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
