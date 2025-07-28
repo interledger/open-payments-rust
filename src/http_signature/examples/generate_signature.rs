@@ -14,7 +14,7 @@ fn main() -> Result<(), HttpSignatureError> {
     request.headers_mut().insert(
         "Content-Type",
         "application/json".parse().map_err(|e| {
-            HttpSignatureError::Other(format!("Failed to parse content type: {}", e))
+            HttpSignatureError::Other(format!("Failed to parse content type: {e}"))
         })?,
     );
 

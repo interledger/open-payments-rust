@@ -30,6 +30,6 @@ async fn main() -> open_payments::client::Result<()> {
         .create(&resource_server_url, &request, Some(&gnap_token))
         .await?;
 
-    println!("Created outgoing payment: {:#?}", payment);
+    println!("Created outgoing payment: {payment:#?}");
     Ok(())
 }

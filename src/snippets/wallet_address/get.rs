@@ -11,6 +11,6 @@ async fn main() -> open_payments::client::Result<()> {
 
     let wallet_address = client.wallet_address().get(&wallet_address_url).await?;
 
-    println!("Retrieved wallet address: {:#?}", wallet_address);
+    println!("Retrieved wallet address: {wallet_address:#?}");
     Ok(())
 }

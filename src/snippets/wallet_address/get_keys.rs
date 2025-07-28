@@ -13,7 +13,7 @@ async fn main() -> open_payments::client::Result<()> {
 
     let keys = client.wallet_address().get_keys(&wallet_address).await?;
 
-    println!("Retrieved wallet address: {:#?}", wallet_address);
-    println!("Retrieved keys: {:#?}", keys);
+    println!("Retrieved wallet address: {wallet_address:#?}");
+    println!("Retrieved keys: {keys:#?}");
     Ok(())
 }
