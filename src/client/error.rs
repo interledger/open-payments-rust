@@ -142,7 +142,9 @@ impl std::fmt::Display for OpClientError {
 
 impl From<reqwest::Error> for OpClientError {
     fn from(err: reqwest::Error) -> Self {
-        let status = err.status().map(|s| s.to_string());
+        let status = err
+            .status()
+            .map(|s| s.canonical_reason().unwrap_or("Unknown").to_string());
         let code = err.status().map(|s| s.as_u16());
         let description = format!("HTTP error: {err}");
 
