@@ -13,7 +13,7 @@ pub(crate) async fn create_quote(
     access_token: Option<&str>,
 ) -> Result<Quote> {
     let url = join_url_paths(resource_server_url, "quotes")?;
-    let body = serde_json::to_string(req_body).map_err(OpClientError::Serde)?;
+    let body = serde_json::to_string(req_body).map_err(OpClientError::from)?;
 
     AuthenticatedRequest::new(client, Method::POST, url)
         .with_body(body)

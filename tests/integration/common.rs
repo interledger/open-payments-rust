@@ -13,20 +13,20 @@ pub struct TestSetup {
 impl TestSetup {
     pub async fn new() -> Result<Self> {
         dotenv::from_filename("tests/integration/.env").map_err(|_| {
-            OpClientError::Other(".env file not found in tests/integration directory".into())
+            OpClientError::other(".env file not found in tests/integration directory".to_string())
         })?;
 
         let resource_server_url = env::var("OPEN_PAYMENTS_SERVER_URL").map_err(|_| {
-            OpClientError::Other("OPEN_PAYMENTS_SERVER_URL not set in .env file".into())
+            OpClientError::other("OPEN_PAYMENTS_SERVER_URL not set in .env file".to_string())
         })?;
         let wallet_address = env::var("OPEN_PAYMENTS_WALLET_ADDRESS").map_err(|_| {
-            OpClientError::Other("OPEN_PAYMENTS_WALLET_ADDRESS not set in .env file".into())
+            OpClientError::other("OPEN_PAYMENTS_WALLET_ADDRESS not set in .env file".to_string())
         })?;
         let key_id = env::var("OPEN_PAYMENTS_KEY_ID").map_err(|_| {
-            OpClientError::Other("OPEN_PAYMENTS_KEY_ID not set in .env file".into())
+            OpClientError::other("OPEN_PAYMENTS_KEY_ID not set in .env file".to_string())
         })?;
         let private_key_path = env::var("OPEN_PAYMENTS_PRIVATE_KEY_PATH").map_err(|_| {
-            OpClientError::Other("OPEN_PAYMENTS_PRIVATE_KEY_PATH not set in .env file".into())
+            OpClientError::other("OPEN_PAYMENTS_PRIVATE_KEY_PATH not set in .env file".to_string())
         })?;
 
         let config = ClientConfig {

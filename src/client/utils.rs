@@ -27,9 +27,14 @@ use url::Url;
 ///
 /// ## Errors
 ///
-/// - `OpClientError::Url` if the wallet address URL cannot be parsed
+/// Returns an `OpClientError` with:
+/// - `description`: Human-readable error message
+/// - `status`: HTTP status text (for HTTP errors)
+/// - `code`: HTTP status code (for HTTP errors)
+/// - `validation_errors`: List of validation errors (if applicable)
+/// - `details`: Additional error details (if applicable)
 pub fn get_resource_server_url(wallet_address_url: &str) -> Result<String> {
-    let url = Url::parse(wallet_address_url).map_err(OpClientError::Url)?;
+    let url = Url::parse(wallet_address_url).map_err(OpClientError::from)?;
 
     let path_segments: Vec<&str> = url
         .path_segments()
@@ -71,9 +76,14 @@ pub fn get_resource_server_url(wallet_address_url: &str) -> Result<String> {
 ///
 /// ## Errors
 ///
-/// - `OpClientError::Url` if the base URL cannot be parsed or the path cannot be joined
+/// Returns an `OpClientError` with:
+/// - `description`: Human-readable error message
+/// - `status`: HTTP status text (for HTTP errors)
+/// - `code`: HTTP status code (for HTTP errors)
+/// - `validation_errors`: List of validation errors (if applicable)
+/// - `details`: Additional error details (if applicable)
 pub fn join_url_paths(base_url: &str, path: &str) -> Result<String> {
-    let mut url = Url::parse(base_url).map_err(OpClientError::Url)?;
+    let mut url = Url::parse(base_url).map_err(OpClientError::from)?;
 
     if path.is_empty() {
         return Ok(url.to_string());
@@ -83,6 +93,6 @@ pub fn join_url_paths(base_url: &str, path: &str) -> Result<String> {
         url.set_path(&format!("{}/", url.path()));
     }
 
-    let joined_url = url.join(path).map_err(OpClientError::Url)?;
+    let joined_url = url.join(path).map_err(OpClientError::from)?;
     Ok(joined_url.to_string())
 }

@@ -73,19 +73,23 @@ impl AuthenticatedOpenPaymentsClient {
     ///
     /// # Errors
     ///
-    /// - `OpClientError::Signature` if the signing key cannot be loaded or generated
-    /// - `OpClientError::Signature` if JWKS cannot be saved to the specified path
+    /// Returns an `OpClientError` with:
+    /// - `description`: Human-readable error message
+    /// - `status`: HTTP status text (for HTTP errors)
+    /// - `code`: HTTP status code (for HTTP errors)
+    /// - `validation_errors`: List of validation errors (if applicable)
+    /// - `details`: Additional error details (if applicable)
     pub fn new(config: ClientConfig) -> Result<Self> {
         let http_client = ReqwestClient::new();
 
         let signing_key = load_or_generate_key(&config.private_key_path).map_err(|e| {
-            OpClientError::Signature(format!("Failed to load or generate signing key: {e}"))
+            OpClientError::signature(format!("Failed to load or generate signing key: {e}"))
         })?;
 
         if let Some(ref jwks_path) = config.jwks_path {
             let jwks_json = Jwk::generate_jwks_json(&signing_key, &config.key_id);
             Jwk::save_jwks(&jwks_json, jwks_path).map_err(|e| {
-                OpClientError::Signature(format!("Failed to save JWK to file: {e}"))
+                OpClientError::signature(format!("Failed to save JWK to file: {e}"))
             })?;
         }
 

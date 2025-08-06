@@ -11,7 +11,7 @@ pub fn load_env() -> Result<()> {
 }
 
 pub fn get_env_var(key: &str) -> Result<String> {
-    env::var(key).map_err(|_| OpClientError::Other(format!("{key} environment variable not set")))
+    env::var(key).map_err(|_| OpClientError::other(format!("{key} environment variable not set")))
 }
 
 pub fn create_authenticated_client() -> Result<AuthenticatedClient> {
@@ -29,9 +29,9 @@ pub fn create_authenticated_client() -> Result<AuthenticatedClient> {
     };
 
     let client = AuthenticatedClient::new(config)
-        .map_err(|e| OpClientError::Other(format!("Client creation error: {e}")))?;
+        .map_err(|e| OpClientError::other(format!("Client creation error: {e}")))?;
     Jwk::new(key_id_clone, Some(&client.signing_key))
-        .map_err(|e| OpClientError::Other(format!("JWK error: {e}")))?;
+        .map_err(|e| OpClientError::other(format!("JWK error: {e}")))?;
     Ok(client)
 }
 
