@@ -7,7 +7,7 @@ use open_payments::types::{resource::CreateIncomingPaymentRequest, Amount};
 
 #[tokio::main]
 async fn main() -> open_payments::client::Result<()> {
-    load_env().map_err(|e| OpClientError::Other(e.to_string()))?;
+    load_env().map_err(|e| OpClientError::other(e.to_string()))?;
 
     let client = create_authenticated_client()?;
 

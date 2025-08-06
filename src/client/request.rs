@@ -123,10 +123,12 @@ impl AuthenticatedRequest<'_> {
     ///
     /// ## Errors
     ///
-    /// - `OpClientError::HeaderParse` if headers cannot be parsed
-    /// - `OpClientError::Signature` if signature creation fails
-    /// - `OpClientError::Http` if the HTTP request fails
-    /// - `OpClientError::Serde` if response deserialization fails
+    /// Returns an `OpClientError` with:
+    /// - `description`: Human-readable error message
+    /// - `status`: HTTP status text (for HTTP errors)
+    /// - `code`: HTTP status code (for HTTP errors)
+    /// - `validation_errors`: List of validation errors (if applicable)
+    /// - `details`: Additional error details (if applicable)
     pub async fn build_and_execute<T: DeserializeOwned + 'static>(
         self,
         access_token: Option<&str>,
@@ -137,7 +139,9 @@ impl AuthenticatedRequest<'_> {
             req.headers_mut().insert(
                 "Authorization",
                 format!("GNAP {token}").parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!("Failed to parse authorization header: {e}"))
+                    OpClientError::header_parse(format!(
+                        "Failed to parse authorization header: {e}"
+                    ))
                 })?,
             );
         }
@@ -146,13 +150,13 @@ impl AuthenticatedRequest<'_> {
             req.headers_mut().insert(
                 "Content-Length",
                 content_length.to_string().parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!("Failed to parse content length: {e}"))
+                    OpClientError::header_parse(format!("Failed to parse content length: {e}"))
                 })?,
             );
             req.headers_mut().insert(
                 "Content-Digest",
                 content_digest.parse().map_err(|e| {
-                    OpClientError::HeaderParse(format!("Failed to parse content digest: {e}"))
+                    OpClientError::header_parse(format!("Failed to parse content digest: {e}"))
                 })?,
             );
         }
@@ -162,13 +166,13 @@ impl AuthenticatedRequest<'_> {
         req.headers_mut().insert(
             "Signature",
             signature.parse().map_err(|e| {
-                OpClientError::HeaderParse(format!("Failed to parse signature header: {e}"))
+                OpClientError::header_parse(format!("Failed to parse signature header: {e}"))
             })?,
         );
         req.headers_mut().insert(
             "Signature-Input",
             signature_input.parse().map_err(|e| {
-                OpClientError::HeaderParse(format!("Failed to parse signature input header: {e}"))
+                OpClientError::header_parse(format!("Failed to parse signature input header: {e}"))
             })?,
         );
 
@@ -193,18 +197,19 @@ impl AuthenticatedRequest<'_> {
         // Convert to http::Request for signing
         let mut http_req = Request::new(self.body.clone());
         *http_req.method_mut() = HttpMethod::from_bytes(req.method().as_str().as_bytes())
-            .map_err(|e| OpClientError::HeaderParse(format!("Converting HTTP method: {e}")))?;
+            .map_err(|e| OpClientError::header_parse(format!("Converting HTTP method: {e}")))?;
         *http_req.uri_mut() = req
             .url()
             .as_str()
             .parse()
-            .map_err(|e| OpClientError::HeaderParse(format!("Converting URL to URI: {e}")))?;
+            .map_err(|e| OpClientError::header_parse(format!("Converting URL to URI: {e}")))?;
 
         for (key, value) in req.headers() {
             let header_name = HeaderName::from_bytes(key.as_str().as_bytes())
-                .map_err(|e| OpClientError::HeaderParse(format!("Converting header name: {e}")))?;
-            let header_value = HeaderValue::from_bytes(value.as_bytes())
-                .map_err(|e| OpClientError::HeaderParse(format!("Converting header value: {e}")))?;
+                .map_err(|e| OpClientError::header_parse(format!("Converting header name: {e}")))?;
+            let header_value = HeaderValue::from_bytes(value.as_bytes()).map_err(|e| {
+                OpClientError::header_parse(format!("Converting header value: {e}"))
+            })?;
             http_req.headers_mut().insert(header_name, header_value);
         }
 
@@ -215,7 +220,7 @@ impl AuthenticatedRequest<'_> {
             self.client.config.key_id.clone(),
         );
         let headers = create_signature_headers(options)
-            .map_err(|e| OpClientError::Signature(e.to_string()))?;
+            .map_err(|e| OpClientError::signature(e.to_string()))?;
 
         Ok((headers.signature, headers.signature_input))
     }
@@ -263,8 +268,12 @@ impl UnauthenticatedRequest<'_> {
     ///
     /// ## Errors
     ///
-    /// - `OpClientError::Http` if the HTTP request fails
-    /// - `OpClientError::Serde` if response deserialization fails
+    /// Returns an `OpClientError` with:
+    /// - `description`: Human-readable error message
+    /// - `status`: HTTP status text (for HTTP errors)
+    /// - `code`: HTTP status code (for HTTP errors)
+    /// - `validation_errors`: List of validation errors (if applicable)
+    /// - `details`: Additional error details (if applicable)
     pub async fn build_and_execute<T: DeserializeOwned + 'static>(self) -> Result<T> {
         let req = build_request(&self)?;
         execute_request(self.client, req).await
@@ -299,7 +308,9 @@ fn build_request<C: BaseClient>(req: &HttpRequest<C>) -> Result<reqwest::Request
         builder = builder.body(body.clone());
     }
 
-    builder.build().map_err(OpClientError::from)
+    builder
+        .build()
+        .map_err(|e| Box::new(OpClientError::from(e)))
 }
 
 /// Executes a reqwest request and deserializes the response.
@@ -319,8 +330,12 @@ fn build_request<C: BaseClient>(req: &HttpRequest<C>) -> Result<reqwest::Request
 ///
 /// ## Errors
 ///
-/// - `OpClientError::Http` if the HTTP status code indicates failure
-/// - `OpClientError::Serde` if response deserialization fails
+/// Returns an `OpClientError` with:
+/// - `description`: Human-readable error message
+/// - `status`: HTTP status text (for HTTP errors)
+/// - `code`: HTTP status code (for HTTP errors)
+/// - `validation_errors`: List of validation errors (if applicable)
+/// - `details`: Additional error details (if applicable)
 async fn execute_request<T: DeserializeOwned + 'static>(
     client: &Client,
     req: reqwest::Request,
@@ -328,9 +343,15 @@ async fn execute_request<T: DeserializeOwned + 'static>(
     let resp = client.execute(req).await.map_err(OpClientError::from)?;
 
     if !resp.status().is_success() {
-        return Err(OpClientError::Http(format!(
-            "Request failed: HTTP {}",
-            resp.status()
+        return Err(Box::new(OpClientError::http(
+            "HTTP request failed".to_string(),
+            Some(
+                resp.status()
+                    .canonical_reason()
+                    .unwrap_or("Unknown")
+                    .to_string(),
+            ),
+            Some(resp.status().as_u16()),
         )));
     }
 

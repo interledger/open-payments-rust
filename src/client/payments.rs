@@ -17,7 +17,7 @@ pub(crate) async fn create_incoming_payment(
     access_token: Option<&str>,
 ) -> Result<IncomingPayment> {
     let url = join_url_paths(resource_server_url, "incoming-payments")?;
-    let body = serde_json::to_string(req_body).map_err(OpClientError::Serde)?;
+    let body = serde_json::to_string(req_body).map_err(OpClientError::from)?;
 
     AuthenticatedRequest::new(client, Method::POST, url)
         .with_body(body)
@@ -84,7 +84,7 @@ pub(crate) async fn create_outgoing_payment(
     access_token: Option<&str>,
 ) -> Result<OutgoingPayment> {
     let url = join_url_paths(resource_server_url, "outgoing-payments")?;
-    let body = serde_json::to_string(req_body).map_err(OpClientError::Serde)?;
+    let body = serde_json::to_string(req_body).map_err(OpClientError::from)?;
 
     AuthenticatedRequest::new(client, Method::POST, url)
         .with_body(body)

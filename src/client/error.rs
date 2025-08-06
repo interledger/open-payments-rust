@@ -4,12 +4,13 @@
 //! All client operations return a [`Result<T, OpClientError>`] which provides
 //! detailed error information for different failure scenarios.
 //!
-//! ## Error Categories
+//! ## Error Structure
 //!
-//! - **HTTP Errors**: Network and HTTP protocol errors
-//! - **Parsing Errors**: Header, URL, and data parsing failures
-//! - **Cryptographic Errors**: Key and signature-related issues
-//! - **I/O Errors**: File system and network I/O problems
+//! - `description` - Human-readable error message
+//! - `validationErrors` - Optional list of validation error messages
+//! - `status` - HTTP status code (only for HTTP errors)
+//! - `code` - Error code (only for HTTP errors)
+//! - `details` - Additional error details as key-value pairs
 //!
 //! ## Example Usage
 //!
@@ -19,118 +20,218 @@
 //! fn handle_client_error(result: Result<()>) {
 //!     match result {
 //!         Ok(()) => println!("Operation successful"),
-//!         Err(OpClientError::Http(msg)) => eprintln!("HTTP error: {}", msg),
-//!         Err(OpClientError::Signature(msg)) => eprintln!("Signature error: {}", msg),
-//!         Err(OpClientError::Other(msg)) => eprintln!("Other error: {}", msg),
-//!         Err(e) => eprintln!("Unexpected error: {:?}", e),
+//!         Err(e) => {
+//!             eprintln!("Error: {}", e.description);
+//!             if let Some(status) = e.status {
+//!                 eprintln!("Status: {}", status);
+//!             }
+//!             if let Some(code) = e.code {
+//!                 eprintln!("Code: {}", code);
+//!             }
+//!             if let Some(validation_errors) = e.validation_errors {
+//!                 for error in validation_errors {
+//!                     eprintln!("Validation error: {}", error);
+//!                 }
+//!             }
+//!         }
 //!     }
 //! }
 //! ```
 
+use std::collections::HashMap;
 use thiserror::Error;
 
 /// Error type for Open Payments client operations.
 ///
-/// This enum provides detailed error information for different types of failures
-/// that can occur during client operations. Each variant includes context-specific
-/// error messages to help with debugging and error handling.
+/// ## Fields
 ///
-/// ## Error Variants
-///
-/// - `Http` - Network and HTTP protocol errors
-/// - `HeaderParse` - HTTP header parsing failures
-/// - `Serde` - JSON serialization/deserialization errors
-/// - `Io` - File system and I/O errors
-/// - `Pem` - PEM format parsing errors
-/// - `Pkcs8` - PKCS8 key format errors
-/// - `Base64` - Base64 encoding/decoding errors
-/// - `Url` - URL parsing errors
-/// - `Signature` - Cryptographic signature errors
-/// - `Other` - Miscellaneous errors
+/// - `description` - Human-readable error message
+/// - `validation_errors` - Optional list of validation error messages
+/// - `status` - HTTP status code (only relevant for HTTP errors)
+/// - `code` - Error code (only relevant for HTTP errors)
+/// - `details` - Additional error details as key-value pairs
 #[derive(Debug, Error)]
-pub enum OpClientError {
-    /// HTTP protocol or network-related errors.
-    ///
-    /// This includes connection failures, timeout errors, and HTTP status code errors.
-    /// The error message provides details about the specific HTTP issue.
-    #[error("HTTP error: {0}")]
-    Http(String),
+pub struct OpClientError {
+    /// Human-readable error description.
+    pub description: String,
 
-    /// HTTP header parsing errors.
-    ///
-    /// Occurs when the client cannot parse required HTTP headers such as
-    /// `Content-Type`, `Authorization`, or custom headers.
-    #[error("Header parse error: {0}")]
-    HeaderParse(String),
+    /// Optional list of validation error messages.
+    pub validation_errors: Option<Vec<String>>,
 
-    /// JSON serialization or deserialization errors.
-    ///
-    /// This error is automatically converted from `serde_json::Error` and occurs
-    /// when the client cannot serialize request data or deserialize response data.
-    #[error("Serde error: {0}")]
-    Serde(#[from] serde_json::Error),
+    /// HTTP status (only relevant for HTTP errors).
+    pub status: Option<String>,
 
-    /// File system and I/O errors.
-    ///
-    /// This error is automatically converted from `std::io::Error` and occurs
-    /// when the client cannot read key files or perform other I/O operations.
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
+    /// Error code (only relevant for HTTP errors).
+    pub code: Option<u16>,
 
-    /// PEM format parsing errors.
-    ///
-    /// Occurs when the client cannot parse PEM-encoded private keys or certificates.
-    /// This includes malformed PEM files or unsupported PEM types.
-    #[error("Invalid PEM: {0}")]
-    Pem(String),
+    /// Additional error details as key-value pairs.
+    pub details: Option<HashMap<String, serde_json::Value>>,
+}
 
-    /// PKCS8 key format errors.
-    ///
-    /// Occurs when the client cannot parse PKCS8-encoded private keys.
-    /// This includes unsupported key algorithms or malformed key data.
-    #[error("PKCS8 error: {0}")]
-    Pkcs8(String),
+impl OpClientError {
+    /// Creates a new HTTP error with status code and optional error code.
+    pub fn http(description: impl Into<String>, status: Option<String>, code: Option<u16>) -> Self {
+        Self {
+            description: description.into(),
+            validation_errors: None,
+            status,
+            code,
+            details: None,
+        }
+    }
 
-    /// Base64 encoding or decoding errors.
-    ///
-    /// This error is automatically converted from `base64::DecodeError` and occurs
-    /// when the client cannot decode Base64-encoded data such as signatures or keys.
-    #[error("Base64 error: {0}")]
-    Base64(#[from] base64::DecodeError),
+    /// Creates a new validation error with a list of validation messages.
+    pub fn validation(description: impl Into<String>, validation_errors: Vec<String>) -> Self {
+        Self {
+            description: description.into(),
+            validation_errors: Some(validation_errors),
+            status: None,
+            code: None,
+            details: None,
+        }
+    }
 
-    /// URL parsing errors.
-    ///
-    /// This error is automatically converted from `url::ParseError` and occurs
-    /// when the client cannot parse URLs for wallet addresses or API endpoints.
-    #[error("URL parse error: {0}")]
-    Url(#[from] url::ParseError),
+    /// Creates a new general error without HTTP-specific fields.
+    pub fn other(description: impl Into<String>) -> Self {
+        Self {
+            description: description.into(),
+            validation_errors: None,
+            status: None,
+            code: None,
+            details: None,
+        }
+    }
 
-    /// Cryptographic signature errors.
-    ///
-    /// Occurs when there are issues with HTTP message signature creation or validation.
-    /// This includes key loading failures, signature generation errors, and validation failures.
-    #[error("Signature error: {0}")]
-    Signature(String),
+    /// Adds additional details to the error.
+    pub fn with_details(mut self, details: HashMap<String, serde_json::Value>) -> Self {
+        self.details = Some(details);
+        self
+    }
 
-    /// Miscellaneous errors that don't fit into other categories.
-    ///
-    /// This variant is used for unexpected errors that don't fall into the standard error categories.
-    #[error("Other error: {0}")]
-    Other(String),
+    /// Adds a single detail key-value pair to the error.
+    pub fn with_detail(mut self, key: impl Into<String>, value: serde_json::Value) -> Self {
+        if self.details.is_none() {
+            self.details = Some(HashMap::new());
+        }
+        if let Some(ref mut details) = self.details {
+            details.insert(key.into(), value);
+        }
+        self
+    }
+}
+
+impl std::fmt::Display for OpClientError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.description)?;
+
+        if let Some(status) = &self.status {
+            write!(f, " (Status: {status})")?;
+        }
+
+        if let Some(code) = &self.code {
+            write!(f, " (Code: {code})")?;
+        }
+
+        if let Some(validation_errors) = &self.validation_errors {
+            write!(f, " [Validation errors: {}]", validation_errors.join(", "))?;
+        }
+
+        Ok(())
+    }
 }
 
 impl From<reqwest::Error> for OpClientError {
-    /// Converts reqwest HTTP errors to `OpClientError::Http`.
-    ///
-    /// This implementation allows the client to automatically convert reqwest errors
-    /// into the unified error type, providing consistent error handling across the library.
     fn from(err: reqwest::Error) -> Self {
-        OpClientError::Http(format!("{err}"))
+        let status = err
+            .status()
+            .map(|s| s.canonical_reason().unwrap_or("Unknown").to_string());
+        let code = err.status().map(|s| s.as_u16());
+        let description = format!("HTTP error: {err}");
+
+        Self {
+            description,
+            validation_errors: None,
+            status,
+            code,
+            details: None,
+        }
+    }
+}
+
+impl From<serde_json::Error> for OpClientError {
+    fn from(err: serde_json::Error) -> Self {
+        Self::other(format!("JSON serialization/deserialization error: {err}"))
+    }
+}
+
+impl From<std::io::Error> for OpClientError {
+    fn from(err: std::io::Error) -> Self {
+        Self::other(format!("I/O error: {err}"))
+    }
+}
+
+impl From<base64::DecodeError> for OpClientError {
+    fn from(err: base64::DecodeError) -> Self {
+        Self::other(format!("Base64 decoding error: {err}"))
+    }
+}
+
+impl From<url::ParseError> for OpClientError {
+    fn from(err: url::ParseError) -> Self {
+        Self::other(format!("URL parsing error: {err}"))
+    }
+}
+
+impl OpClientError {
+    pub fn header_parse(description: impl Into<String>) -> Self {
+        Self::other(format!("Header parse error: {}", description.into()))
+    }
+
+    pub fn pem(description: impl Into<String>) -> Self {
+        Self::other(format!("Invalid PEM: {}", description.into()))
+    }
+
+    pub fn pkcs8(description: impl Into<String>) -> Self {
+        Self::other(format!("PKCS8 error: {}", description.into()))
+    }
+
+    pub fn signature(description: impl Into<String>) -> Self {
+        Self::other(format!("Signature error: {}", description.into()))
+    }
+}
+
+impl From<url::ParseError> for Box<OpClientError> {
+    fn from(err: url::ParseError) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<reqwest::Error> for Box<OpClientError> {
+    fn from(err: reqwest::Error) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<serde_json::Error> for Box<OpClientError> {
+    fn from(err: serde_json::Error) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<std::io::Error> for Box<OpClientError> {
+    fn from(err: std::io::Error) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<base64::DecodeError> for Box<OpClientError> {
+    fn from(err: base64::DecodeError) -> Self {
+        Box::new(OpClientError::from(err))
     }
 }
 
 /// Result type for Open Payments client operations.
 ///
-/// This is a type alias for `Result<T, OpClientError>` that provides a convenient
+/// This is a type alias for `Result<T, Box<OpClientError>>` that provides a convenient
 /// way to handle client operation results with detailed error information.
-pub type Result<T> = std::result::Result<T, OpClientError>;
+pub type Result<T> = std::result::Result<T, Box<OpClientError>>;
