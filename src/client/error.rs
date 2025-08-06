@@ -125,11 +125,11 @@ impl std::fmt::Display for OpClientError {
         write!(f, "{}", self.description)?;
 
         if let Some(status) = &self.status {
-            write!(f, " (Status: {})", status)?;
+            write!(f, " (Status: {status})")?;
         }
 
         if let Some(code) = &self.code {
-            write!(f, " (Code: {})", code)?;
+            write!(f, " (Code: {code})")?;
         }
 
         if let Some(validation_errors) = &self.validation_errors {
@@ -144,7 +144,7 @@ impl From<reqwest::Error> for OpClientError {
     fn from(err: reqwest::Error) -> Self {
         let status = err.status().map(|s| s.to_string());
         let code = err.status().map(|s| s.as_u16());
-        let description = format!("HTTP error: {}", err);
+        let description = format!("HTTP error: {err}");
 
         Self {
             description,
@@ -158,25 +158,25 @@ impl From<reqwest::Error> for OpClientError {
 
 impl From<serde_json::Error> for OpClientError {
     fn from(err: serde_json::Error) -> Self {
-        Self::other(format!("JSON serialization/deserialization error: {}", err))
+        Self::other(format!("JSON serialization/deserialization error: {err}"))
     }
 }
 
 impl From<std::io::Error> for OpClientError {
     fn from(err: std::io::Error) -> Self {
-        Self::other(format!("I/O error: {}", err))
+        Self::other(format!("I/O error: {err}"))
     }
 }
 
 impl From<base64::DecodeError> for OpClientError {
     fn from(err: base64::DecodeError) -> Self {
-        Self::other(format!("Base64 decoding error: {}", err))
+        Self::other(format!("Base64 decoding error: {err}"))
     }
 }
 
 impl From<url::ParseError> for OpClientError {
     fn from(err: url::ParseError) -> Self {
-        Self::other(format!("URL parsing error: {}", err))
+        Self::other(format!("URL parsing error: {err}"))
     }
 }
 
@@ -198,8 +198,38 @@ impl OpClientError {
     }
 }
 
+impl From<url::ParseError> for Box<OpClientError> {
+    fn from(err: url::ParseError) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<reqwest::Error> for Box<OpClientError> {
+    fn from(err: reqwest::Error) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<serde_json::Error> for Box<OpClientError> {
+    fn from(err: serde_json::Error) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<std::io::Error> for Box<OpClientError> {
+    fn from(err: std::io::Error) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
+impl From<base64::DecodeError> for Box<OpClientError> {
+    fn from(err: base64::DecodeError) -> Self {
+        Box::new(OpClientError::from(err))
+    }
+}
+
 /// Result type for Open Payments client operations.
 ///
-/// This is a type alias for `Result<T, OpClientError>` that provides a convenient
+/// This is a type alias for `Result<T, Box<OpClientError>>` that provides a convenient
 /// way to handle client operation results with detailed error information.
-pub type Result<T> = std::result::Result<T, OpClientError>;
+pub type Result<T> = std::result::Result<T, Box<OpClientError>>;

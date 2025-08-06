@@ -308,7 +308,9 @@ fn build_request<C: BaseClient>(req: &HttpRequest<C>) -> Result<reqwest::Request
         builder = builder.body(body.clone());
     }
 
-    builder.build().map_err(OpClientError::from)
+    builder
+        .build()
+        .map_err(|e| Box::new(OpClientError::from(e)))
 }
 
 /// Executes a reqwest request and deserializes the response.
@@ -341,7 +343,7 @@ async fn execute_request<T: DeserializeOwned + 'static>(
     let resp = client.execute(req).await.map_err(OpClientError::from)?;
 
     if !resp.status().is_success() {
-        return Err(OpClientError::http(
+        return Err(Box::new(OpClientError::http(
             "HTTP request failed".to_string(),
             Some(
                 resp.status()
@@ -350,7 +352,7 @@ async fn execute_request<T: DeserializeOwned + 'static>(
                     .to_string(),
             ),
             Some(resp.status().as_u16()),
-        ));
+        )));
     }
 
     if resp.status() == reqwest::StatusCode::NO_CONTENT
