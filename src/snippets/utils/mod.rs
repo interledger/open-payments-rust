@@ -11,7 +11,7 @@ pub fn load_env() -> Result<()> {
 }
 
 pub fn get_env_var(key: &str) -> Result<String> {
-    env::var(key).map_err(|_| OpClientError::other(format!("{key} environment variable not set")))
+    Ok(env::var(key).map_err(|_| OpClientError::other(format!("{key} environment variable not set")))?)
 }
 
 pub fn create_authenticated_client() -> Result<AuthenticatedClient> {
