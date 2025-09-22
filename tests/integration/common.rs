@@ -1,6 +1,7 @@
 use open_payments::client::ClientConfig;
 use open_payments::client::{AuthenticatedClient, UnauthenticatedClient};
 use open_payments::client::{OpClientError, Result};
+use open_payments::utils;
 use std::env;
 
 pub struct TestSetup {
@@ -8,6 +9,8 @@ pub struct TestSetup {
     pub unauth_client: UnauthenticatedClient,
     pub resource_server_url: String,
     pub wallet_address: String,
+    pub test_wallet_email: Option<String>,
+    pub test_wallet_password: Option<String>,
 }
 
 impl TestSetup {
@@ -16,9 +19,6 @@ impl TestSetup {
             OpClientError::other(".env file not found in tests/integration directory".to_string())
         })?;
 
-        let resource_server_url = env::var("OPEN_PAYMENTS_SERVER_URL").map_err(|_| {
-            OpClientError::other("OPEN_PAYMENTS_SERVER_URL not set in .env file".to_string())
-        })?;
         let wallet_address = env::var("OPEN_PAYMENTS_WALLET_ADDRESS").map_err(|_| {
             OpClientError::other("OPEN_PAYMENTS_WALLET_ADDRESS not set in .env file".to_string())
         })?;
@@ -28,6 +28,9 @@ impl TestSetup {
         let private_key_path = env::var("OPEN_PAYMENTS_PRIVATE_KEY_PATH").map_err(|_| {
             OpClientError::other("OPEN_PAYMENTS_PRIVATE_KEY_PATH not set in .env file".to_string())
         })?;
+        let test_wallet_email = env::var("TEST_WALLET_EMAIL").ok();
+        let test_wallet_password = env::var("TEST_WALLET_PASSWORD").ok();
+        let resource_server_url = utils::get_resource_server_url(&wallet_address)?;
 
         let config = ClientConfig {
             key_id,
@@ -44,6 +47,8 @@ impl TestSetup {
             unauth_client,
             resource_server_url,
             wallet_address,
+            test_wallet_email,
+            test_wallet_password,
         };
 
         Ok(test_setup)

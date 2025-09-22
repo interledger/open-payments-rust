@@ -1,0 +1,36 @@
+name: Release Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Release level (patch|minor|major)"
+        required: true
+        default: patch
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-release
+        run: cargo install cargo-release --locked
+
+      - name: Run cargo-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cargo release ${{ github.event.inputs.level }} --no-dev-version --execute
+

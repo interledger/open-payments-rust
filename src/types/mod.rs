@@ -74,9 +74,9 @@ pub mod wallet_address;
 pub use common::*;
 
 pub use auth::{
-    AccessItem, AccessToken, AccessTokenRequest, AccessTokenResponse, Continue, ContinueRequest,
+    AccessItem, AccessToken, AccessTokenRequest, AccessTokenResponse, Continue, ContinueAccessToken, ContinueRequest,
     ContinueResponse, GrantRequest, GrantResponse, IncomingPaymentAction, InteractRequest,
-    InteractResponse, LimitsOutgoing, OutgoingPaymentAction, QuoteAction,
+    InteractFinish, InteractResponse, LimitsOutgoing, OutgoingPaymentAction, QuoteAction,
 };
 
 pub use resource::{
