@@ -77,7 +77,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
         incoming_amount: Some(Amount {
             value: "10".into(),
             asset_code: wallet_address.asset_code.clone(),
-            asset_scale: wallet_address.asset_scale as u8,
+            asset_scale: wallet_address.asset_scale,
         }),
         metadata: None,
         expires_at: Some(chrono::Utc::now() + chrono::Duration::minutes(30)),
@@ -285,7 +285,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
         receive_amount: Amount {
             value: "10".into(),
             asset_code: wallet_address.asset_code.clone(),
-            asset_scale: wallet_address.asset_scale as u8,
+            asset_scale: wallet_address.asset_scale,
         },
     };
     let quote = test_setup
