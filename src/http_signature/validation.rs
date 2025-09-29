@@ -77,7 +77,9 @@ fn parse_signature_input(signature_input: &str) -> Result<(Vec<&str>, i64, Strin
     let mut keyid = None;
 
     // Remove the sig1= prefix if present
-    let signature_input = signature_input.strip_prefix("sig1=").unwrap_or(signature_input);
+    let signature_input = signature_input
+        .strip_prefix("sig1=")
+        .unwrap_or(signature_input);
 
     for part in signature_input.split(';') {
         if let Some(inner) = part.strip_prefix('(').and_then(|p| p.strip_suffix(')')) {
