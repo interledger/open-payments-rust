@@ -9,13 +9,13 @@ pub struct ValidationOptions<'a> {
     pub public_key: &'a VerifyingKey,
 }
 
-impl<'a> ValidationOptions<'a> {
-    pub fn new(
+impl ValidationOptions<'_> {
+    pub fn new<'a>(
         request: &'a Request<Option<String>>,
         headers: &'a HeaderMap,
         public_key: &'a VerifyingKey,
-    ) -> Self {
-        Self {
+    ) -> ValidationOptions<'a> {
+        ValidationOptions {
             request,
             headers,
             public_key,
