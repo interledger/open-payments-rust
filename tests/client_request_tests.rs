@@ -1,9 +1,15 @@
-use open_payments::client::{AuthenticatedClient, AuthenticatedResources, ClientConfig, UnauthenticatedClient, UnauthenticatedResources};
-use open_payments::types::{CreateIncomingPaymentRequest, Amount, PublicIncomingPayment, WalletAddress, CreateQuoteRequest, PaymentMethodType, Receiver, CreateOutgoingPaymentRequest};
-use wiremock::matchers::{method, path, header, header_exists};
+use open_payments::client::{
+    AuthenticatedClient, AuthenticatedResources, ClientConfig, UnauthenticatedClient,
+    UnauthenticatedResources,
+};
+use open_payments::types::{
+    Amount, CreateIncomingPaymentRequest, CreateOutgoingPaymentRequest, CreateQuoteRequest,
+    PaymentMethodType, PublicIncomingPayment, Receiver, WalletAddress,
+};
 use tempfile::tempdir;
-use wiremock::{Mock, MockServer, ResponseTemplate};
 use url::Url;
+use wiremock::matchers::{header, header_exists, method, path};
+use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn dummy_config(base: &str) -> ClientConfig {
     ClientConfig {
@@ -61,7 +67,10 @@ async fn authenticated_incoming_payment_create_sets_headers_and_body() {
         .and(header_exists("Signature"))
         .and(header_exists("Signature-Input"))
         .and(header_exists("Content-Digest"))
-        .respond_with(ResponseTemplate::new(200).set_body_raw(response_payment.to_string(), "application/json"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_raw(response_payment.to_string(), "application/json"),
+        )
         .mount(&server)
         .await;
 
@@ -72,12 +81,20 @@ async fn authenticated_incoming_payment_create_sets_headers_and_body() {
 
     let req = CreateIncomingPaymentRequest {
         wallet_address: base.join("alice").unwrap().to_string(),
-        incoming_amount: Some(Amount { value: "100".into(), asset_code: "EUR".into(), asset_scale: 2 }),
+        incoming_amount: Some(Amount {
+            value: "100".into(),
+            asset_code: "EUR".into(),
+            asset_scale: 2,
+        }),
         expires_at: None,
         metadata: None,
     };
 
-    let _ = client.incoming_payments().create(&server.uri(), &req, None).await.unwrap();
+    let _ = client
+        .incoming_payments()
+        .create(&server.uri(), &req, None)
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
@@ -94,13 +111,21 @@ async fn authenticated_quote_create_and_get() {
         "method": "ilp",
         "createdAt": "2025-01-01T00:00:00Z"
     });
-    Mock::given(method("POST")).and(path(base.join("quotes").unwrap().path())).respond_with(
-        ResponseTemplate::new(200).set_body_raw(created_quote.to_string(), "application/json")
-    ).mount(&server).await;
+    Mock::given(method("POST"))
+        .and(path(base.join("quotes").unwrap().path()))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_raw(created_quote.to_string(), "application/json"),
+        )
+        .mount(&server)
+        .await;
 
-    Mock::given(method("GET")).and(path(base.join("quotes/q1").unwrap().path())).respond_with(
-        ResponseTemplate::new(200).set_body_raw(created_quote.to_string(), "application/json")
-    ).mount(&server).await;
+    Mock::given(method("GET"))
+        .and(path(base.join("quotes/q1").unwrap().path()))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_raw(created_quote.to_string(), "application/json"),
+        )
+        .mount(&server)
+        .await;
 
     let tmp = tempdir().unwrap();
     let mut config = dummy_config(&server.uri());
@@ -111,12 +136,24 @@ async fn authenticated_quote_create_and_get() {
         wallet_address: base.join("alice").unwrap().to_string(),
         receiver: Receiver(base.join("incoming-payments/123").unwrap().to_string()),
         method: PaymentMethodType::Ilp,
-        receive_amount: Amount { value: "10".into(), asset_code: "EUR".into(), asset_scale: 2 },
+        receive_amount: Amount {
+            value: "10".into(),
+            asset_code: "EUR".into(),
+            asset_scale: 2,
+        },
     };
-    let q = client.quotes().create(&server.uri(), &req, Some("tok")).await.unwrap();
+    let q = client
+        .quotes()
+        .create(&server.uri(), &req, Some("tok"))
+        .await
+        .unwrap();
     assert_eq!(q.id, base.join("quotes/q1").unwrap().to_string());
 
-    let q2 = client.quotes().get(&base.join("quotes/q1").unwrap().to_string(), Some("tok")).await.unwrap();
+    let q2 = client
+        .quotes()
+        .get(&base.join("quotes/q1").unwrap().to_string(), Some("tok"))
+        .await
+        .unwrap();
     assert_eq!(q2, q);
 }
 
@@ -138,9 +175,14 @@ async fn authenticated_outgoing_payment_create_from_quote() {
         "grantSpentReceiveAmount": {"value": "0", "assetCode": "EUR", "assetScale": 2},
         "createdAt": "2025-01-01T00:00:00Z"
     });
-    Mock::given(method("POST")).and(path(base.join("outgoing-payments").unwrap().path())).respond_with(
-        ResponseTemplate::new(200).set_body_raw(created_payment.to_string(), "application/json")
-    ).mount(&server).await;
+    Mock::given(method("POST"))
+        .and(path(base.join("outgoing-payments").unwrap().path()))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_raw(created_payment.to_string(), "application/json"),
+        )
+        .mount(&server)
+        .await;
 
     let tmp = tempdir().unwrap();
     let mut config = dummy_config(&server.uri());
@@ -152,8 +194,15 @@ async fn authenticated_outgoing_payment_create_from_quote() {
         quote_id: base.join("quotes/q1").unwrap().to_string(),
         metadata: None,
     };
-    let p = client.outgoing_payments().create(&server.uri(), &req, Some("tok")).await.unwrap();
-    assert_eq!(p.id, base.join("outgoing-payments/op1").unwrap().to_string());
+    let p = client
+        .outgoing_payments()
+        .create(&server.uri(), &req, Some("tok"))
+        .await
+        .unwrap();
+    assert_eq!(
+        p.id,
+        base.join("outgoing-payments/op1").unwrap().to_string()
+    );
 }
 
 #[tokio::test]
@@ -168,7 +217,9 @@ async fn error_propagates_http_status_and_message() {
         .await;
 
     let client = UnauthenticatedClient::new();
-    let res: Result<PublicIncomingPayment, _> = client.public_incoming_payments().get(&base.join("public-payment").unwrap().to_string()).await;
+    let res: Result<PublicIncomingPayment, _> = client
+        .public_incoming_payments()
+        .get(&base.join("public-payment").unwrap().to_string())
+        .await;
     assert!(res.is_err());
 }
-
