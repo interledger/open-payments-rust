@@ -71,29 +71,21 @@ fn create_signature_base_string(
     parts.join("\n")
 }
 
-#[allow(clippy::manual_strip)]
 fn parse_signature_input(signature_input: &str) -> Result<(Vec<&str>, i64, String)> {
     let mut components = Vec::new();
     let mut created = None;
     let mut keyid = None;
 
     // Remove the sig1= prefix if present
-    let signature_input = if signature_input.starts_with("sig1=") {
-        &signature_input[5..]
-    } else {
-        signature_input
-    };
+    let signature_input = signature_input.strip_prefix("sig1=").unwrap_or(signature_input);
 
     for part in signature_input.split(';') {
-        if part.starts_with('(') {
-            components = part[1..part.len() - 1]
-                .split(' ')
-                .map(|s| s.trim())
-                .collect();
-        } else if part.starts_with("created=") {
-            created = Some(part[8..].parse::<i64>().unwrap_or(0));
-        } else if part.starts_with("keyid=") {
-            keyid = Some(part[7..].trim_matches('"').to_string());
+        if let Some(inner) = part.strip_prefix('(').and_then(|p| p.strip_suffix(')')) {
+            components = inner.split(' ').map(|s| s.trim()).collect();
+        } else if let Some(value) = part.strip_prefix("created=") {
+            created = value.parse::<i64>().ok();
+        } else if let Some(value) = part.strip_prefix("keyid=") {
+            keyid = Some(value.trim_matches('"').to_string());
         }
     }
 
