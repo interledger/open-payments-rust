@@ -68,7 +68,7 @@ jobs:
         run: |
           mkdir -p tests/integration
           cat > tests/integration/.env <<'EOF'
-          OPEN_PAYMENTS_WALLET_ADDRESS=${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}
+          OPEN_PAYMENTS_WALLET_ADDRESS=https://ilp.interledger-test.dev/carilas
           OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}
           OPEN_PAYMENTS_PRIVATE_KEY_PATH=tests/integration/private_key.pem
           TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
