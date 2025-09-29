@@ -36,9 +36,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
     let test_setup = match TestSetup::new().await {
         Ok(v) => v,
         Err(err) => {
-            eprintln!(
-                "Skipping test_outgoing_payment_flow_with_interaction: {err}"
-            );
+            eprintln!("Skipping test_outgoing_payment_flow_with_interaction: {err}");
             return;
         }
     };
