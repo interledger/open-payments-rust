@@ -71,8 +71,8 @@ jobs:
           OPEN_PAYMENTS_WALLET_ADDRESS=${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}
           OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}
           OPEN_PAYMENTS_PRIVATE_KEY_PATH=tests/integration/private_key.pem
-          TEST_WALLET_EMAIL=${{ secrets.TEST_WALLET_EMAIL }}
-          TEST_WALLET_PASSWORD=${{ secrets.TEST_WALLET_PASSWORD }}
+          TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
+          TEST_WALLET_PASSWORD="${{ secrets.TEST_WALLET_PASSWORD }}"
           EOF
           echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" > tests/integration/private_key.pem
           chmod 600 tests/integration/private_key.pem
