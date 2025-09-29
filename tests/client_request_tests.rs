@@ -147,11 +147,11 @@ async fn authenticated_quote_create_and_get() {
         .create(&server.uri(), &req, Some("tok"))
         .await
         .unwrap();
-    assert_eq!(q.id, base.join("quotes/q1").unwrap().to_string());
+    assert_eq!(q.id, base.join("quotes/q1").unwrap().as_ref());
 
     let q2 = client
         .quotes()
-        .get(&base.join("quotes/q1").unwrap().to_string(), Some("tok"))
+        .get(base.join("quotes/q1").unwrap().as_ref(), Some("tok"))
         .await
         .unwrap();
     assert_eq!(q2, q);
@@ -219,7 +219,7 @@ async fn error_propagates_http_status_and_message() {
     let client = UnauthenticatedClient::new();
     let res: Result<PublicIncomingPayment, _> = client
         .public_incoming_payments()
-        .get(&base.join("public-payment").unwrap().to_string())
+        .get(base.join("public-payment").unwrap().as_ref())
         .await;
     assert!(res.is_err());
 }

@@ -28,8 +28,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
         std::env::var("WEBDRIVER_URL").unwrap_or_else(|_| "http://localhost:4444".into());
     if !webdriver_ready(&webdriver_url).await {
         eprintln!(
-            "Skipping test_outgoing_payment_flow_with_interaction: WebDriver not available at {}",
-            webdriver_url
+            "Skipping test_outgoing_payment_flow_with_interaction: WebDriver not available at {webdriver_url}"
         );
         return;
     }
@@ -38,8 +37,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
         Ok(v) => v,
         Err(err) => {
             eprintln!(
-                "Skipping test_outgoing_payment_flow_with_interaction: {}",
-                err
+                "Skipping test_outgoing_payment_flow_with_interaction: {err}"
             );
             return;
         }
@@ -122,7 +120,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
             .ok();
         driver.goto(redirect).await.expect("Navigate to redirect");
         if let Ok(url_now) = driver.current_url().await {
-            println!("Navigated to: {}", url_now);
+            println!("Navigated to: {url_now}");
         }
 
         // If we're on the wallet login, attempt to log in using env creds
