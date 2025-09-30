@@ -70,12 +70,12 @@ jobs:
           cat > tests/integration/.env <<'EOF'
           OPEN_PAYMENTS_WALLET_ADDRESS=https://ilp.interledger-test.dev/carilas
           OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}
-          OPEN_PAYMENTS_PRIVATE_KEY_PATH=tests/integration/private_key.pem
+          OPEN_PAYMENTS_PRIVATE_KEY_PATH=tests/integration/private.key
           TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
           TEST_WALLET_PASSWORD="${{ secrets.TEST_WALLET_PASSWORD }}"
           EOF
-          echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" > tests/integration/private_key.pem
-          chmod 600 tests/integration/private_key.pem
+          echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" > tests/integration/private.key
+          chmod 600 tests/integration/private.key
       - name: Run integration tests
         env:
           WEBDRIVER_URL: http://localhost:4444
