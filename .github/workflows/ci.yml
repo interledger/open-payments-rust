@@ -67,15 +67,16 @@ jobs:
       - name: Prepare integration env
         run: |
           mkdir -p tests/integration
-          cat > tests/integration/.env <<'EOF'
+          PRIVATE_KEY_PATH="$GITHUB_WORKSPACE/tests/integration/private.key"
+          cat > tests/integration/.env <<EOF
           OPEN_PAYMENTS_WALLET_ADDRESS=https://ilp.interledger-test.dev/carilas
           OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}
-          OPEN_PAYMENTS_PRIVATE_KEY_PATH=tests/integration/private.key
+          OPEN_PAYMENTS_PRIVATE_KEY_PATH=$PRIVATE_KEY_PATH
           TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
           TEST_WALLET_PASSWORD="${{ secrets.TEST_WALLET_PASSWORD }}"
           EOF
-          echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" > tests/integration/private.key
-          chmod 600 tests/integration/private.key
+          printf '%s' "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" > "$PRIVATE_KEY_PATH"
+          chmod 600 "$PRIVATE_KEY_PATH"
       - name: Run integration tests
         env:
           WEBDRIVER_URL: http://localhost:4444
