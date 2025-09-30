@@ -9,13 +9,15 @@ use std::path::Path;
 
 pub fn load_or_generate_key(path: &Path) -> Result<SigningKey> {
     if path.exists() {
-        let key_str = fs::read_to_string(path)?;
-        let key_str = key_str.trim();
+        let file_content = fs::read_to_string(path)?;
+        let without_bom = file_content.trim_start_matches('\u{feff}');
+        let without_cr = without_bom.replace('\r', "");
+        let trimmed = without_cr.trim();
 
-        let key_str = if let Ok(decoded) = STANDARD.decode(key_str) {
+        let key_str = if let Ok(decoded) = STANDARD.decode(trimmed) {
             String::from_utf8(decoded)?
         } else {
-            key_str.to_string()
+            trimmed.to_string()
         };
 
         let pem = parse(&key_str).map_err(|e| HttpSignatureError::Pem(e.to_string()))?;
