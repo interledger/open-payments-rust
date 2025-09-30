@@ -75,7 +75,7 @@ jobs:
           TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
           TEST_WALLET_PASSWORD="${{ secrets.TEST_WALLET_PASSWORD }}"
           EOF
-          printf '%s' "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" > "$PRIVATE_KEY_PATH"
+          printf '%s' "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" | tr -d '\r' > "$PRIVATE_KEY_PATH"
           chmod 600 "$PRIVATE_KEY_PATH"
       - name: Run integration tests
         env:
