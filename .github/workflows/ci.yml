@@ -41,6 +41,7 @@ jobs:
 
   integration:
     name: Integration tests with Selenium (Linux)
+    environment: Integration tests
     runs-on: ubuntu-latest
     services:
       selenium:
