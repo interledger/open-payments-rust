@@ -41,7 +41,6 @@ jobs:
 
   integration:
     name: Integration tests with Selenium (Linux)
-    if: ${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM != '' && secrets.OPEN_PAYMENTS_KEY_ID != '' && secrets.TEST_WALLET_EMAIL != '' && secrets.TEST_WALLET_PASSWORD != '' }}
     runs-on: ubuntu-latest
     services:
       selenium:
@@ -66,23 +65,32 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Prepare integration env
+        env:
+          OPEN_PAYMENTS_PRIVATE_KEY_PEM: ${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}
+          OPEN_PAYMENTS_KEY_ID: ${{ secrets.OPEN_PAYMENTS_KEY_ID }}
+          TEST_WALLET_EMAIL: ${{ secrets.TEST_WALLET_EMAIL }}
+          TEST_WALLET_PASSWORD: ${{ secrets.TEST_WALLET_PASSWORD }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
+          if [ -z "${OPEN_PAYMENTS_PRIVATE_KEY_PEM:-}" ] || [ -z "${OPEN_PAYMENTS_KEY_ID:-}" ] || [ -z "${TEST_WALLET_EMAIL:-}" ] || [ -z "${TEST_WALLET_PASSWORD:-}" ]; then
+            echo "[integration] Required secrets are missing; failing pipeline." >&2
+            exit 1
+          fi
           mkdir -p tests/integration
           PRIVATE_KEY_PATH="$GITHUB_WORKSPACE/tests/integration/private.key"
           cat > tests/integration/.env <<EOF
           OPEN_PAYMENTS_WALLET_ADDRESS=https://ilp.interledger-test.dev/carilas
-          OPEN_PAYMENTS_KEY_ID=${{ secrets.OPEN_PAYMENTS_KEY_ID }}
+          OPEN_PAYMENTS_KEY_ID=$OPEN_PAYMENTS_KEY_ID
           OPEN_PAYMENTS_PRIVATE_KEY_PATH=$PRIVATE_KEY_PATH
-          TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
-          TEST_WALLET_PASSWORD="${{ secrets.TEST_WALLET_PASSWORD }}"
+          TEST_WALLET_EMAIL="$TEST_WALLET_EMAIL"
+          TEST_WALLET_PASSWORD="$TEST_WALLET_PASSWORD"
           EOF
           # trim leading spaces introduced by YAML indentation
           sed -i 's/^ *//' tests/integration/.env
-          if echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" | grep -q 'BEGIN PRIVATE KEY'; then
-            printf '%s' "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" | tr -d '\r' > "$PRIVATE_KEY_PATH"
+          if echo "$OPEN_PAYMENTS_PRIVATE_KEY_PEM" | grep -q 'BEGIN PRIVATE KEY'; then
+            printf '%s' "$OPEN_PAYMENTS_PRIVATE_KEY_PEM" | tr -d '\r' > "$PRIVATE_KEY_PATH"
           else
-            printf '%s' "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" | base64 -d > "$PRIVATE_KEY_PATH"
+            printf '%s' "$OPEN_PAYMENTS_PRIVATE_KEY_PEM" | base64 -d > "$PRIVATE_KEY_PATH"
           fi
           chmod 600 "$PRIVATE_KEY_PATH"
           test -s "$PRIVATE_KEY_PATH"
@@ -90,6 +98,11 @@ jobs:
         env:
           WEBDRIVER_URL: http://localhost:4444
         run: |
+          set -eo pipefail
+          if [ ! -s "$GITHUB_WORKSPACE/tests/integration/.env" ] || [ ! -s "$GITHUB_WORKSPACE/tests/integration/private.key" ]; then
+            echo "[integration] Setup artifacts missing; failing pipeline." >&2
+            exit 1
+          fi
           cargo test --tests -- --nocapture
 
   security:
