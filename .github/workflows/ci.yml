@@ -41,6 +41,7 @@ jobs:
 
   integration:
     name: Integration tests with Selenium (Linux)
+    if: ${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM != '' && secrets.OPEN_PAYMENTS_KEY_ID != '' && secrets.TEST_WALLET_EMAIL != '' && secrets.TEST_WALLET_PASSWORD != '' }}
     runs-on: ubuntu-latest
     services:
       selenium:
@@ -76,6 +77,8 @@ jobs:
           TEST_WALLET_EMAIL="${{ secrets.TEST_WALLET_EMAIL }}"
           TEST_WALLET_PASSWORD="${{ secrets.TEST_WALLET_PASSWORD }}"
           EOF
+          # trim leading spaces introduced by YAML indentation
+          sed -i 's/^ *//' tests/integration/.env
           if echo "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" | grep -q 'BEGIN PRIVATE KEY'; then
             printf '%s' "${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}" | tr -d '\r' > "$PRIVATE_KEY_PATH"
           else
