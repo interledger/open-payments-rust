@@ -283,7 +283,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
         receiver: Receiver(incoming_payment.id.clone()),
         method: PaymentMethodType::Ilp,
         receive_amount: Amount {
-            value: "10".into(),
+            value: "1000".into(),
             asset_code: wallet_address.asset_code.clone(),
             asset_scale: wallet_address.asset_scale,
         },
