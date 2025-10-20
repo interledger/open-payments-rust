@@ -240,7 +240,7 @@ async fn error_includes_status_code_and_reason() {
         .public_incoming_payments()
         .get(base.join("missing").unwrap().as_ref())
         .await;
-    let err = res.err().expect("expected error");
+    let err = res.expect_err("expected error");
     assert_eq!(err.description, "HTTP request failed");
     assert_eq!(err.code, Some(404));
     assert_eq!(err.status.as_deref(), Some("Not Found"));
@@ -263,7 +263,7 @@ async fn json_decode_error_maps_to_client_error_without_status() {
         .wallet_address()
         .get(base.join("alice").unwrap().as_ref())
         .await;
-    let err = res.err().expect("expected error");
+    let err = res.expect_err("expected error");
     assert!(err.description.starts_with("HTTP error:"));
     assert!(err.code.is_none());
     assert!(err.status.is_none());
@@ -288,7 +288,7 @@ async fn header_parse_error_with_invalid_token() {
             Some("bad\ntoken"),
         )
         .await;
-    let err = res.err().expect("expected error");
+    let err = res.expect_err("expected error");
     assert!(err.description.starts_with("Header parse error:"));
 }
 
