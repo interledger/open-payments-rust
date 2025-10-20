@@ -173,4 +173,19 @@ mod tests {
         let key2 = load_or_generate_key(&path).unwrap();
         assert_eq!(key1.to_bytes(), key2.to_bytes());
     }
+
+    #[test]
+    fn test_invalid_utf8_after_base64_decode() {
+        let temp_dir = tempdir().unwrap();
+        let path = temp_dir.path().join("bad_utf8_b64.pem");
+
+        // Bytes that are invalid UTF-8 when decoded
+        let invalid_bytes = vec![0xFF, 0xFF, 0xFF];
+        let encoded = STANDARD.encode(&invalid_bytes);
+
+        fs::write(&path, encoded).unwrap();
+
+        let result = load_or_generate_key(&path);
+        assert!(matches!(result, Err(HttpSignatureError::Utf8(_))));
+    }
 }

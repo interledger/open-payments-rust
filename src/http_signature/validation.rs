@@ -169,4 +169,130 @@ mod tests {
         let options = ValidationOptions::new(&request, &headers, &verifying_key);
         assert!(validate_signature(options).is_ok());
     }
+
+    #[test]
+    fn test_missing_signature_input_header() {
+        let mut request = Request::new(Some("body".to_string()));
+        *request.method_mut() = Method::POST;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = VerifyingKey::from(&signing_key);
+
+        let headers = HeaderMap::new();
+        let options = ValidationOptions::new(&request, &headers, &verifying_key);
+        let err = validate_signature(options).unwrap_err();
+        match err {
+            HttpSignatureError::Validation(msg) => {
+                assert_eq!(msg, "Missing Signature-Input header");
+            }
+            _ => panic!("unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_missing_signature_header() {
+        let mut request = Request::new(Some("body".to_string()));
+        *request.method_mut() = Method::POST;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let options = SignOptions::new(&request, &signing_key, "k".to_string());
+        let sig = create_signature_headers(options).unwrap();
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Signature-Input", sig.signature_input.parse().unwrap());
+
+        let verifying_key = VerifyingKey::from(&signing_key);
+        let options = ValidationOptions::new(&request, &headers, &verifying_key);
+        let err = validate_signature(options).unwrap_err();
+        match err {
+            HttpSignatureError::Validation(msg) => {
+                assert_eq!(msg, "Missing Signature header");
+            }
+            _ => panic!("unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_base64_decode_failed() {
+        let mut request = Request::new(Some("body".to_string()));
+        *request.method_mut() = Method::POST;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let options = SignOptions::new(&request, &signing_key, "k".to_string());
+        let sig = create_signature_headers(options).unwrap();
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Signature-Input", sig.signature_input.parse().unwrap());
+        headers.insert("Signature", "%%%".parse().unwrap());
+
+        let verifying_key = VerifyingKey::from(&signing_key);
+        let options = ValidationOptions::new(&request, &headers, &verifying_key);
+        let err = validate_signature(options).unwrap_err();
+        match err {
+            HttpSignatureError::Validation(msg) => {
+                assert_eq!(msg, "Base64 decode failed");
+            }
+            _ => panic!("unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_invalid_signature_length() {
+        let mut request = Request::new(Some("body".to_string()));
+        *request.method_mut() = Method::POST;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let options = SignOptions::new(&request, &signing_key, "k".to_string());
+        let sig = create_signature_headers(options).unwrap();
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Signature-Input", sig.signature_input.parse().unwrap());
+        headers.insert("Signature", "aGVsbG8=".parse().unwrap()); // "hello"
+
+        let verifying_key = VerifyingKey::from(&signing_key);
+        let options = ValidationOptions::new(&request, &headers, &verifying_key);
+        let err = validate_signature(options).unwrap_err();
+        match err {
+            HttpSignatureError::Validation(msg) => {
+                assert_eq!(msg, "Invalid signature length");
+            }
+            _ => panic!("unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_signature_verification_failed() {
+        let mut request = Request::new(Some("body".to_string()));
+        *request.method_mut() = Method::POST;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+        request
+            .headers_mut()
+            .insert("Content-Type", "application/json".parse().unwrap());
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = VerifyingKey::from(&signing_key);
+
+        let options = SignOptions::new(&request, &signing_key, "k".to_string());
+        let sig = create_signature_headers(options).unwrap();
+
+        // Tamper with request after signing to force verification failure
+        *request.uri_mut() = Uri::from_static("http://example.com/changed");
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Signature-Input", sig.signature_input.parse().unwrap());
+        headers.insert("Signature", sig.signature.parse().unwrap());
+
+        let options = ValidationOptions::new(&request, &headers, &verifying_key);
+        let err = validate_signature(options).unwrap_err();
+        match err {
+            HttpSignatureError::Validation(msg) => {
+                assert_eq!(msg, "Signature verification failed");
+            }
+            _ => panic!("unexpected error type"),
+        }
+    }
 }

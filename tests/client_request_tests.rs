@@ -4,7 +4,7 @@ use open_payments::client::{
 };
 use open_payments::types::{
     Amount, CreateIncomingPaymentRequest, CreateOutgoingPaymentRequest, CreateQuoteRequest,
-    PaymentMethodType, PublicIncomingPayment, Receiver, WalletAddress,
+    IncomingPayment, PaymentMethodType, PublicIncomingPayment, Receiver, WalletAddress,
 };
 use tempfile::tempdir;
 use url::Url;
@@ -222,4 +222,118 @@ async fn error_propagates_http_status_and_message() {
         .get(base.join("public-payment").unwrap().as_ref())
         .await;
     assert!(res.is_err());
+}
+
+#[tokio::test]
+async fn error_includes_status_code_and_reason() {
+    let server = MockServer::start().await;
+
+    let base = Url::parse(&server.uri()).unwrap();
+    Mock::given(method("GET"))
+        .and(path(base.join("missing").unwrap().path()))
+        .respond_with(ResponseTemplate::new(404))
+        .mount(&server)
+        .await;
+
+    let client = UnauthenticatedClient::new();
+    let res: Result<PublicIncomingPayment, _> = client
+        .public_incoming_payments()
+        .get(base.join("missing").unwrap().as_ref())
+        .await;
+    let err = res.err().expect("expected error");
+    assert_eq!(err.description, "HTTP request failed");
+    assert_eq!(err.code, Some(404));
+    assert_eq!(err.status.as_deref(), Some("Not Found"));
+}
+
+#[tokio::test]
+async fn json_decode_error_maps_to_client_error_without_status() {
+    let server = MockServer::start().await;
+
+    let base = Url::parse(&server.uri()).unwrap();
+    // Return invalid JSON with 200 OK
+    Mock::given(method("GET"))
+        .and(path(base.join("alice").unwrap().path()))
+        .respond_with(ResponseTemplate::new(200).set_body_string("not-json"))
+        .mount(&server)
+        .await;
+
+    let client = UnauthenticatedClient::new();
+    let res = client
+        .wallet_address()
+        .get(base.join("alice").unwrap().as_ref())
+        .await;
+    let err = res.err().expect("expected error");
+    assert!(err.description.starts_with("HTTP error:"));
+    assert!(err.code.is_none());
+    assert!(err.status.is_none());
+}
+
+#[tokio::test]
+async fn header_parse_error_with_invalid_token() {
+    let server = MockServer::start().await;
+
+    let base = Url::parse(&server.uri()).unwrap();
+
+    let tmp = tempdir().unwrap();
+    let mut config = dummy_config(&server.uri());
+    config.private_key_path = tmp.path().join("private.key");
+    let client = AuthenticatedClient::new(config).unwrap();
+
+    // Use an invalid header value (contains newline) to force parse failure
+    let res: Result<IncomingPayment, _> = client
+        .incoming_payments()
+        .get(
+            base.join("incoming-payments/p1").unwrap().as_ref(),
+            Some("bad\ntoken"),
+        )
+        .await;
+    let err = res.err().expect("expected error");
+    assert!(err.description.starts_with("Header parse error:"));
+}
+
+#[tokio::test]
+async fn revoke_token_204_no_content_succeeds() {
+    let server = MockServer::start().await;
+
+    let base = Url::parse(&server.uri()).unwrap();
+    Mock::given(method("DELETE"))
+        .and(path(base.join("token/revoke").unwrap().path()))
+        .respond_with(ResponseTemplate::new(204))
+        .mount(&server)
+        .await;
+
+    let tmp = tempdir().unwrap();
+    let mut config = dummy_config(&server.uri());
+    config.private_key_path = tmp.path().join("private.key");
+    let client = AuthenticatedClient::new(config).unwrap();
+
+    let res = client
+        .token()
+        .revoke(base.join("token/revoke").unwrap().as_ref(), Some("token"))
+        .await;
+    assert!(res.is_ok());
+}
+
+#[tokio::test]
+async fn cancel_grant_204_no_content_succeeds() {
+    let server = MockServer::start().await;
+
+    let base = Url::parse(&server.uri()).unwrap();
+    Mock::given(method("DELETE"))
+        .and(path(base.join("continue/123").unwrap().path()))
+        .respond_with(ResponseTemplate::new(204))
+        .mount(&server)
+        .await;
+
+    let tmp = tempdir().unwrap();
+    let mut config = dummy_config(&server.uri());
+    config.private_key_path = tmp.path().join("private.key");
+    let client = AuthenticatedClient::new(config).unwrap();
+
+    let res = client
+        .grant()
+        .cancel(base.join("continue/123").unwrap().as_ref(), Some("token"))
+        .await;
+    assert!(res.is_ok());
 }
