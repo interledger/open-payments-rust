@@ -153,7 +153,7 @@ jobs:
       - name: Run coverage (unit tests only)
         run: |
           # run unit tests by limiting to lib and bins; generate cobertura xml at coverage.xml
-          cargo tarpaulin --out Xml --output-dir target/tarpaulin --timeout 1200 --packages open-payments --lib --bins
+          cargo tarpaulin --out Xml --output-dir target/tarpaulin --timeout 1200 --packages open-payments --lib --bins --exclude-files 'src/snippets/.*'
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
