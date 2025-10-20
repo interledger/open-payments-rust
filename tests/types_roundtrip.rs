@@ -429,7 +429,7 @@ fn incoming_payment_with_methods_roundtrip() {
         metadata: None,
         created_at: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
         updated_at: None,
-        methods: Some(vec![ilp.clone()]),
+        methods: None,
     };
     let wrapped = IncomingPaymentWithMethods {
         payment: base,

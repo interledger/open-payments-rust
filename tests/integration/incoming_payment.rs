@@ -74,7 +74,6 @@ async fn test_incoming_payment_flows() {
         .await
         .expect("Failed to create incoming payment");
 
-    println!("Created incoming payment: {}", incoming_payment.id);
     assert_eq!(incoming_payment.wallet_address, test_setup.wallet_address);
     assert_eq!(
         incoming_payment.incoming_amount.as_ref().unwrap().value,

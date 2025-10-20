@@ -75,7 +75,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
     let incoming_req = IncomingPaymentRequest {
         wallet_address: wallet_address.id.clone(),
         incoming_amount: Some(Amount {
-            value: "10".into(),
+            value: "1000".into(),
             asset_code: wallet_address.asset_code.clone(),
             asset_scale: wallet_address.asset_scale,
         }),
