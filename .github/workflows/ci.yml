@@ -5,60 +5,160 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 env:
   CARGO_TERM_COLOR: always
-
 jobs:
-  test:
-    name: Test
+  lint-build-test:
+    name: Lint, build, unit test, docs (Linux)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Install Rust stable
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-        profile: minimal
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
 
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-stable-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
 
-    - name: Check formatting
-      run: cargo fmt --all -- --check
+      - name: rustfmt
+        run: cargo fmt --all -- --check
 
-    - name: Check clippy
-      run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: clippy (all targets, all features)
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
-    - name: Run tests
-      run: cargo test --all-features -- --skip integration
+      - name: Build (all targets, all features)
+        run: cargo build --all-targets --all-features --locked
 
-    - name: Run doc tests
-      run: cargo test --doc
+      - name: Unit tests only (lib, bins)
+        run: cargo test --all-features --lib --bins -- --nocapture
 
-    - name: Build with snippets feature
-      run: cargo build --release --features snippets
+      - name: Docs build
+        run: cargo doc --no-deps
 
-  docs:
-    name: Build documentation
+  integration:
+    name: Integration tests with Selenium (Linux)
+    runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chromium:140.0
+        ports:
+          - 4444:4444
+          - 7900:7900
+        env:
+          SE_NODE_MAX_SESSIONS: 1
+        options: >-
+          --shm-size=2g
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Prepare integration env
+        env:
+          OPEN_PAYMENTS_WALLET_ADDRESS: ${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}
+          OPEN_PAYMENTS_PRIVATE_KEY_PEM: ${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}
+          OPEN_PAYMENTS_KEY_ID: ${{ secrets.OPEN_PAYMENTS_KEY_ID }}
+          TEST_WALLET_EMAIL: ${{ secrets.TEST_WALLET_EMAIL }}
+          TEST_WALLET_PASSWORD: ${{ secrets.TEST_WALLET_PASSWORD }}
+        run: |
+          set -eo pipefail
+          if [ -z "${OPEN_PAYMENTS_PRIVATE_KEY_PEM:-}" ] || [ -z "${OPEN_PAYMENTS_KEY_ID:-}" ] || [ -z "${TEST_WALLET_EMAIL:-}" ] || [ -z "${TEST_WALLET_PASSWORD:-}" ]; then
+            echo "[integration] Required secrets are missing; failing pipeline." >&2
+            exit 1
+          fi
+          mkdir -p tests/integration
+          PRIVATE_KEY_PATH="$GITHUB_WORKSPACE/tests/integration/private.key"
+          cat > tests/integration/.env <<EOF
+          OPEN_PAYMENTS_WALLET_ADDRESS=$OPEN_PAYMENTS_WALLET_ADDRESS
+          OPEN_PAYMENTS_KEY_ID=$OPEN_PAYMENTS_KEY_ID
+          OPEN_PAYMENTS_PRIVATE_KEY_PATH=$PRIVATE_KEY_PATH
+          TEST_WALLET_EMAIL="$TEST_WALLET_EMAIL"
+          TEST_WALLET_PASSWORD="$TEST_WALLET_PASSWORD"
+          EOF
+          # trim leading spaces introduced by YAML indentation
+          sed -i 's/^ *//' tests/integration/.env
+          if echo "$OPEN_PAYMENTS_PRIVATE_KEY_PEM" | grep -q 'BEGIN PRIVATE KEY'; then
+            printf '%s' "$OPEN_PAYMENTS_PRIVATE_KEY_PEM" | tr -d '\r' > "$PRIVATE_KEY_PATH"
+          else
+            printf '%s' "$OPEN_PAYMENTS_PRIVATE_KEY_PEM" | base64 -d > "$PRIVATE_KEY_PATH"
+          fi
+          chmod 600 "$PRIVATE_KEY_PATH"
+          test -s "$PRIVATE_KEY_PATH"
+      - name: Run integration tests
+        env:
+          WEBDRIVER_URL: http://localhost:4444
+        run: |
+          set -eo pipefail
+          if [ ! -s "$GITHUB_WORKSPACE/tests/integration/.env" ] || [ ! -s "$GITHUB_WORKSPACE/tests/integration/private.key" ]; then
+            echo "[integration] Setup artifacts missing; failing pipeline." >&2
+            exit 1
+          fi
+          cargo test --tests -- --nocapture
+
+  security:
+    name: Security audit and dependency checks
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Install Rust stable
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-        profile: minimal
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
-    - name: Build docs
-      run: cargo doc --no-deps --features snippets 
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: cargo-audit (vulnerabilities)
+        uses: rustsec/audit-check@v1
+        continue-on-error: true
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: cargo-deny (licenses, bans)
+        uses: EmbarkStudios/cargo-deny-action@v2
+        continue-on-error: true
+        with:
+          command: check bans licenses sources advisories
+
+  coverage:
+    name: Test coverage (tarpaulin)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install tarpaulin
+        run: |
+          cargo install cargo-tarpaulin --locked
+
+      - name: Run coverage (unit tests only)
+        run: |
+          # run unit tests by limiting to lib and bins; generate cobertura xml at coverage.xml
+          cargo tarpaulin --out Xml --output-dir target/tarpaulin --timeout 1200 --packages open-payments --lib --bins --exclude-files 'src/snippets/.*'
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: target/tarpaulin/coverage.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -17,7 +17,9 @@ pub struct IncomingPayment {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Value>,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub methods: Option<Vec<PaymentMethod>>,
 }
 
@@ -77,18 +79,13 @@ pub struct OutgoingPayment {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Value>,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum CreateQuoteRequest {
-    NoAmountQuote {
-        #[serde(rename = "walletAddress")]
-        wallet_address: String,
-        receiver: Receiver,
-        method: PaymentMethodType,
-    },
     FixedReceiveAmountQuote {
         #[serde(rename = "walletAddress")]
         wallet_address: String,
@@ -104,6 +101,12 @@ pub enum CreateQuoteRequest {
         method: PaymentMethodType,
         #[serde(rename = "debitAmount")]
         debit_amount: Amount,
+    },
+    NoAmountQuote {
+        #[serde(rename = "walletAddress")]
+        wallet_address: String,
+        receiver: Receiver,
+        method: PaymentMethodType,
     },
 }
 

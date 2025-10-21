@@ -43,7 +43,6 @@ async fn test_grant_flows() {
             access_token,
             continue_,
         } => {
-            println!("Received access token: {}", access_token.value);
             assert!(!access_token.value.is_empty());
             assert!(!access_token.manage.is_empty());
             assert!(!continue_.uri.is_empty());

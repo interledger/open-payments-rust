@@ -9,13 +9,15 @@ use std::path::Path;
 
 pub fn load_or_generate_key(path: &Path) -> Result<SigningKey> {
     if path.exists() {
-        let key_str = fs::read_to_string(path)?;
-        let key_str = key_str.trim();
+        let file_content = fs::read_to_string(path)?;
+        let without_bom = file_content.trim_start_matches('\u{feff}');
+        let without_cr = without_bom.replace('\r', "");
+        let trimmed = without_cr.trim();
 
-        let key_str = if let Ok(decoded) = STANDARD.decode(key_str) {
+        let key_str = if let Ok(decoded) = STANDARD.decode(trimmed) {
             String::from_utf8(decoded)?
         } else {
-            key_str.to_string()
+            trimmed.to_string()
         };
 
         let pem = parse(&key_str).map_err(|e| HttpSignatureError::Pem(e.to_string()))?;
@@ -170,5 +172,20 @@ mod tests {
         // Load the key again to verify it's the same
         let key2 = load_or_generate_key(&path).unwrap();
         assert_eq!(key1.to_bytes(), key2.to_bytes());
+    }
+
+    #[test]
+    fn test_invalid_utf8_after_base64_decode() {
+        let temp_dir = tempdir().unwrap();
+        let path = temp_dir.path().join("bad_utf8_b64.pem");
+
+        // Bytes that are invalid UTF-8 when decoded
+        let invalid_bytes = vec![0xFF, 0xFF, 0xFF];
+        let encoded = STANDARD.encode(&invalid_bytes);
+
+        fs::write(&path, encoded).unwrap();
+
+        let result = load_or_generate_key(&path);
+        assert!(matches!(result, Err(HttpSignatureError::Utf8(_))));
     }
 }

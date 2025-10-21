@@ -1,0 +1,19 @@
+allow-branch = ["main", "release/*"]
+consolidate-commits = true
+sign-commit = false
+sign-tag = false
+tag-prefix = "v"
+push = true
+
+[workspace]
+
+[registry]
+index = "https://github.com/rust-lang/crates.io-index"
+
+[package]
+publish = true
+tag-name = "v{{version}}"
+pre-release-replacements = [
+    { file = "README.md", search = "open-payments = \"[0-9]+\.[0-9]+\.[0-9]+\"", replace = "open-payments = \"{{version}}\"", exactly = 2 },
+]
+

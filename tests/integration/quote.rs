@@ -49,7 +49,7 @@ async fn create_incoming_payment(test_setup: &TestSetup, access_token: &str) -> 
     let request = IncomingPaymentRequest {
         wallet_address: test_setup.wallet_address.clone(),
         incoming_amount: Some(Amount {
-            value: "100".to_string(),
+            value: "1000".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         }),
@@ -105,7 +105,7 @@ async fn test_quote_flows() {
         receiver: Receiver(incoming_payment_url.clone()),
         method: PaymentMethodType::Ilp,
         debit_amount: Amount {
-            value: "100".to_string(),
+            value: "1000".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         },
@@ -123,7 +123,7 @@ async fn test_quote_flows() {
         .expect("Failed to create quote");
 
     assert_eq!(quote.wallet_address, test_setup.wallet_address);
-    assert_eq!(quote.debit_amount.value, "100");
+    assert_eq!(quote.debit_amount.value, "1000");
 
     let retrieved_quote = test_setup
         .auth_client
@@ -141,7 +141,7 @@ async fn test_quote_flows() {
         receiver: Receiver(incoming_payment_url),
         method: PaymentMethodType::Ilp,
         receive_amount: Amount {
-            value: "100".to_string(),
+            value: "1000".to_string(),
             asset_code: "EUR".to_string(),
             asset_scale: 2,
         },
@@ -159,5 +159,5 @@ async fn test_quote_flows() {
         .expect("Failed to create quote");
 
     assert_eq!(quote.wallet_address, test_setup.wallet_address);
-    assert_eq!(quote.receive_amount.value, "100");
+    assert_eq!(quote.receive_amount.value, "1000");
 }

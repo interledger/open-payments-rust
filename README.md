@@ -64,7 +64,7 @@ More phone numbers: https://tel.meet/htd-eefo-ovn?hs=5
 
 ### Prerequisites
 
-- [Rust](https://www.rust-lang.org/tools/install) (>= 1.43.1)
+- [Rust](https://www.rust-lang.org/tools/install) (>= 1.70)
 - [Git](https://git-scm.com/downloads)
 
 ### Environment Setup
@@ -124,5 +124,4 @@ For examples and snippets:
 ```toml
 [dependencies]
 open-payments = { version = "0.1.1", features = ["snippets"] }
-```
 ```

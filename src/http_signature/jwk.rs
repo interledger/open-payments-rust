@@ -73,7 +73,7 @@ impl Jwk {
             "kid": key_id,
             "x": x
         });
-        let jwks = json!({ "keys": [ jwk ] });
+        let jwks = json!({ "keys": [jwk] });
         jwks.to_string()
     }
 

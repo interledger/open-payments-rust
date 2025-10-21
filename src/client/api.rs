@@ -237,47 +237,47 @@ pub mod unauthenticated {
 }
 
 pub trait AuthenticatedResources {
-    fn quotes(&self) -> authenticated::QuoteResource;
-    fn incoming_payments(&self) -> authenticated::IncomingPaymentResource;
-    fn outgoing_payments(&self) -> authenticated::OutgoingPaymentResource;
-    fn grant(&self) -> authenticated::Grant;
-    fn token(&self) -> authenticated::Token;
+    fn quotes(&self) -> authenticated::QuoteResource<'_>;
+    fn incoming_payments(&self) -> authenticated::IncomingPaymentResource<'_>;
+    fn outgoing_payments(&self) -> authenticated::OutgoingPaymentResource<'_>;
+    fn grant(&self) -> authenticated::Grant<'_>;
+    fn token(&self) -> authenticated::Token<'_>;
 }
 
 /// Extension trait for any client (authenticated or not)
 pub trait UnauthenticatedResources: BaseClient + Sized {
-    fn wallet_address(&self) -> unauthenticated::WalletAddressResource<Self>;
-    fn public_incoming_payments(&self) -> unauthenticated::IncomingPaymentResource<Self>;
+    fn wallet_address(&self) -> unauthenticated::WalletAddressResource<'_, Self>;
+    fn public_incoming_payments(&self) -> unauthenticated::IncomingPaymentResource<'_, Self>;
 }
 
 impl AuthenticatedResources for AuthenticatedOpenPaymentsClient {
-    fn quotes(&self) -> authenticated::QuoteResource {
+    fn quotes(&self) -> authenticated::QuoteResource<'_> {
         authenticated::QuoteResource::new(self)
     }
 
-    fn incoming_payments(&self) -> authenticated::IncomingPaymentResource {
+    fn incoming_payments(&self) -> authenticated::IncomingPaymentResource<'_> {
         authenticated::IncomingPaymentResource::new(self)
     }
 
-    fn outgoing_payments(&self) -> authenticated::OutgoingPaymentResource {
+    fn outgoing_payments(&self) -> authenticated::OutgoingPaymentResource<'_> {
         authenticated::OutgoingPaymentResource::new(self)
     }
 
-    fn grant(&self) -> authenticated::Grant {
+    fn grant(&self) -> authenticated::Grant<'_> {
         authenticated::Grant::new(self)
     }
 
-    fn token(&self) -> authenticated::Token {
+    fn token(&self) -> authenticated::Token<'_> {
         authenticated::Token::new(self)
     }
 }
 
 impl<C: BaseClient> UnauthenticatedResources for C {
-    fn wallet_address(&self) -> unauthenticated::WalletAddressResource<Self> {
+    fn wallet_address(&self) -> unauthenticated::WalletAddressResource<'_, Self> {
         unauthenticated::WalletAddressResource::new(self)
     }
 
-    fn public_incoming_payments(&self) -> unauthenticated::IncomingPaymentResource<Self> {
+    fn public_incoming_payments(&self) -> unauthenticated::IncomingPaymentResource<'_, Self> {
         unauthenticated::IncomingPaymentResource::new(self)
     }
 }

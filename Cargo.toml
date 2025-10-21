@@ -10,6 +10,7 @@ readme = "README.md"
 keywords = ["open-payments", "interledger", "payments", "http-signatures", "gnap"]
 categories = ["api-bindings", "web-programming", "asynchronous"]
 homepage = "https://github.com/interledger/open-payments-rust"
+rust-version = "1.84"
 
 [features]
 default = []
@@ -156,3 +157,5 @@ tokio = { version = "1.45.0", features = ["full"] }
 dotenv = "0.15"
 tempfile = "3.20.0"
 uuid = { version = "1.16", features = ["v4", "serde"] }
+wiremock = { version = "0.6" }
+thirtyfour = { version = "0.33" }

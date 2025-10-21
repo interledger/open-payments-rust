@@ -16,13 +16,13 @@ pub struct SignOptions<'a> {
     pub key_id: String,
 }
 
-impl<'a> SignOptions<'a> {
-    pub fn new(
+impl SignOptions<'_> {
+    pub fn new<'a>(
         request: &'a Request<Option<String>>,
         private_key: &'a SigningKey,
         key_id: String,
-    ) -> Self {
-        Self {
+    ) -> SignOptions<'a> {
+        SignOptions {
             request,
             private_key,
             key_id,
