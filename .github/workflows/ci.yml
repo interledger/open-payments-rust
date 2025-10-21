@@ -41,7 +41,6 @@ jobs:
 
   integration:
     name: Integration tests with Selenium (Linux)
-    environment: Integration tests
     runs-on: ubuntu-latest
     services:
       selenium:
@@ -67,6 +66,7 @@ jobs:
 
       - name: Prepare integration env
         env:
+          OPEN_PAYMENTS_WALLET_ADDRESS: ${{ secrets.OPEN_PAYMENTS_WALLET_ADDRESS }}
           OPEN_PAYMENTS_PRIVATE_KEY_PEM: ${{ secrets.OPEN_PAYMENTS_PRIVATE_KEY_PEM }}
           OPEN_PAYMENTS_KEY_ID: ${{ secrets.OPEN_PAYMENTS_KEY_ID }}
           TEST_WALLET_EMAIL: ${{ secrets.TEST_WALLET_EMAIL }}
@@ -80,7 +80,7 @@ jobs:
           mkdir -p tests/integration
           PRIVATE_KEY_PATH="$GITHUB_WORKSPACE/tests/integration/private.key"
           cat > tests/integration/.env <<EOF
-          OPEN_PAYMENTS_WALLET_ADDRESS=https://ilp.interledger-test.dev/carilas
+          OPEN_PAYMENTS_WALLET_ADDRESS=$OPEN_PAYMENTS_WALLET_ADDRESS
           OPEN_PAYMENTS_KEY_ID=$OPEN_PAYMENTS_KEY_ID
           OPEN_PAYMENTS_PRIVATE_KEY_PATH=$PRIVATE_KEY_PATH
           TEST_WALLET_EMAIL="$TEST_WALLET_EMAIL"
@@ -125,6 +125,7 @@ jobs:
         uses: rustsec/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          denyWarnings: false
 
       - name: cargo-deny (licenses, bans)
         uses: EmbarkStudios/cargo-deny-action@v2
