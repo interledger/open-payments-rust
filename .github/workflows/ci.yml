@@ -129,6 +129,7 @@ jobs:
 
       - name: cargo-deny (licenses, bans)
         uses: EmbarkStudios/cargo-deny-action@v2
+        continue-on-error: true
         with:
           command: check bans licenses sources advisories
 

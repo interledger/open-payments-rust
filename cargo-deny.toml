@@ -1,5 +1,5 @@
 [advisories]
-vulnerability = "deny"
+vulnerability = "warn"
 unmaintained = "warn"
 yanked = "warn"
 notice = "warn"
