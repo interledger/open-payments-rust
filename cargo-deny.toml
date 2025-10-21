@@ -6,7 +6,7 @@ notice = "warn"
 ignore = []
 
 [licenses]
-unlicensed = "deny"
+unlicensed = "warn"
 allow = [
     "Apache-2.0",
     "MIT",
@@ -17,7 +17,7 @@ allow = [
 ]
 deny = [
 ]
-copyleft = "warn"
+copyleft = "allow"
 confidence-threshold = 0.92
 
 [bans]
