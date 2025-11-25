@@ -23,8 +23,8 @@ A clear and concise description of what you expected to happen.
 **Environment:**
  - OS: [e.g. macOS, Linux, Windows]
  - Rust version: [e.g. 1.70.0]
- - open-payments version: [e.g. 0.1.0]
- - Cargo features used: [e.g. snippets]
+ - open-payments version: [e.g. 0.1.2]
+ - Cargo features used: [e.g. default]
 
 **Additional context**
 Add any other context about the problem here.

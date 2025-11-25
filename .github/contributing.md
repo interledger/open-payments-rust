@@ -58,9 +58,6 @@ cargo build
 # Run all tests
 cargo test
 
-# Run tests with snippets feature
-cargo test --features snippets
-
 # Run doc tests
 cargo test --doc
 
@@ -76,9 +73,6 @@ cargo fmt --all -- --check
 ```bash
 # Generate documentation
 cargo doc --no-deps
-
-# Generate documentation with snippets
-cargo doc --features snippets --no-deps
 
 # Open documentation in browser
 cargo doc --no-deps --open
