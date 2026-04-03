@@ -17,6 +17,8 @@ fn dummy_config(base: &str) -> ClientConfig {
         private_key_path: std::path::PathBuf::from("tests/private.key"),
         jwks_path: None,
         wallet_address_url: format!("{base}/alice"),
+        request_timeout: None,
+        connect_timeout: None,
     }
 }
 

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::time::Duration;
 
 ///
 /// Configuration for an authenticated Open Payments client.
@@ -49,6 +50,23 @@ pub struct ClientConfig {
     ///
     /// This is the URL of the wallet address that will be used to send and receive payments.
     pub wallet_address_url: String,
+
+    /// Optional request timeout duration.
+    ///
+    /// If set, all HTTP requests made by this client will be subject to
+    /// this timeout. Defaults to 30 seconds if not specified.
+    ///
+    /// Payment APIs are latency-sensitive — a missing timeout can cause
+    /// requests to hang indefinitely if the server stops responding.
+    #[serde(skip)]
+    pub request_timeout: Option<Duration>,
+
+    /// Optional connection timeout duration.
+    ///
+    /// Limits how long the client will wait to establish a TCP connection.
+    /// Defaults to 10 seconds if not specified.
+    #[serde(skip)]
+    pub connect_timeout: Option<Duration>,
 }
 
 impl Default for ClientConfig {
@@ -76,6 +94,8 @@ impl Default for ClientConfig {
             private_key_path: PathBuf::from("private.key"),
             jwks_path: None,
             wallet_address_url: "".into(),
+            request_timeout: Some(Duration::from_secs(30)),
+            connect_timeout: Some(Duration::from_secs(10)),
         }
     }
 }
