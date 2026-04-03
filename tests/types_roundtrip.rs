@@ -77,16 +77,16 @@ fn outgoing_payment_roundtrip_minimal() {
             asset_code: "USD".into(),
             asset_scale: 2,
         },
-        grant_spent_debit_amount: Amount {
+        grant_spent_debit_amount: Some(Amount {
             value: "0".into(),
             asset_code: "USD".into(),
             asset_scale: 2,
-        },
-        grant_spent_receive_amount: Amount {
+        }),
+        grant_spent_receive_amount: Some(Amount {
             value: "0".into(),
             asset_code: "USD".into(),
             asset_scale: 2,
-        },
+        }),
         metadata: None,
         created_at: Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap(),
         updated_at: None,
@@ -238,7 +238,7 @@ fn grant_and_continue_response_roundtrip_variants() {
             value: "av".into(),
             manage: "https://auth.interledger-test.dev/manage".into(),
             expires_in: Some(3600),
-            access: None,
+            access: vec![],
         },
         continue_: cont.clone(),
     };
@@ -258,7 +258,7 @@ fn grant_and_continue_response_roundtrip_variants() {
             value: "av".into(),
             manage: "https://auth.interledger-test.dev/manage".into(),
             expires_in: Some(3600),
-            access: None,
+            access: vec![],
         },
         continue_: cont.clone(),
     };
@@ -313,7 +313,7 @@ fn access_token_and_response_roundtrip() {
         value: "token".into(),
         manage: "https://auth.interledger-test.dev/manage".into(),
         expires_in: Some(3600),
-        access: None,
+        access: vec![],
     };
     serde_roundtrip(&tok);
     let resp = AccessTokenResponse { access_token: tok };
@@ -411,7 +411,7 @@ fn incoming_payment_with_methods_roundtrip() {
         ilp_address: "test.bank".into(),
         shared_secret: "s".into(),
     };
-    let base = IncomingPayment {
+    let wrapped = IncomingPaymentWithMethods {
         id: "https://ilp.interledger-test.dev/incoming-payments/123".into(),
         wallet_address: "https://ilp.interledger-test.dev/alice".into(),
         completed: false,
@@ -429,10 +429,6 @@ fn incoming_payment_with_methods_roundtrip() {
         metadata: None,
         created_at: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
         updated_at: None,
-        methods: None,
-    };
-    let wrapped = IncomingPaymentWithMethods {
-        payment: base,
         methods: vec![ilp],
     };
     serde_roundtrip(&wrapped);
