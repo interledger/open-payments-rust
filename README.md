@@ -117,11 +117,105 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-open-payments = "0.1.1"
+open-payments = "0.1.2"
 ```
 
-For examples and snippets:
-```toml
-[dependencies]
-open-payments = { version = "0.1.1", features = ["snippets"] }
+## Quick Start
+
+### Unauthenticated Client
+
+Fetch public wallet address information without authentication:
+
+```rust
+use open_payments::client::{UnauthenticatedClient, UnauthenticatedResources};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = UnauthenticatedClient::new();
+
+    let wallet = client
+        .wallet_address()
+        .get("https://ilp.rafiki.money/alice")
+        .await?;
+
+    println!("Wallet: {} ({})", wallet.public_name, wallet.id);
+    println!("Asset: {} (scale {})", wallet.asset_code, wallet.asset_scale);
+    println!("Auth server: {}", wallet.auth_server);
+    Ok(())
+}
+```
+
+### Authenticated Client
+
+Create payments using an authenticated client with HTTP message signatures:
+
+```rust
+use open_payments::client::{AuthenticatedClient, AuthenticatedResources, ClientConfig};
+use open_payments::types::{
+    AccessItem, AccessTokenRequest, CreateIncomingPaymentRequest, GrantRequest,
+    IncomingPaymentAction,
+};
+use std::path::PathBuf;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = ClientConfig {
+        key_id: "my-key-id".to_string(),
+        private_key_path: PathBuf::from("private.pem"),
+        jwks_path: Some(PathBuf::from("jwks.json")),
+        wallet_address_url: "https://ilp.rafiki.money/alice".into(),
+        ..Default::default()
+    };
+
+    let client = AuthenticatedClient::new(config)?;
+
+    // 1. Request a grant for incoming payments
+    let grant_request = GrantRequest::new(
+        AccessTokenRequest {
+            access: vec![AccessItem::IncomingPayment {
+                actions: vec![
+                    IncomingPaymentAction::Create,
+                    IncomingPaymentAction::Read,
+                ],
+                identifier: None,
+            }],
+        },
+        None,
+    );
+
+    let grant = client
+        .grant()
+        .request("https://auth.ilp.rafiki.money", &grant_request)
+        .await?;
+
+    // 2. Create an incoming payment (using the access token from the grant)
+    // ... see src/snippets/ for complete payment flow examples
+
+    Ok(())
+}
+```
+
+### HTTP Message Signatures
+
+The SDK handles HTTP message signature creation and validation per [RFC 9421](https://www.rfc-editor.org/rfc/rfc9421):
+
+```rust
+use open_payments::http_signature::{
+    create_signature_headers, validate_signature,
+    SignOptions, ValidationOptions,
+};
+use ed25519_dalek::SigningKey;
+use http::{Request, Method, Uri};
+use rand::rngs::OsRng;
+
+let mut request = Request::new(Some("{}".to_string()));
+*request.method_mut() = Method::POST;
+*request.uri_mut() = Uri::from_static("https://ilp.rafiki.money/incoming-payments");
+
+let signing_key = SigningKey::generate(&mut OsRng);
+let options = SignOptions::new(&request, &signing_key, "my-key-id".to_string());
+let sig_headers = create_signature_headers(options)?;
+
+println!("Signature: {}", sig_headers.signature);
+println!("Signature-Input: {}", sig_headers.signature_input);
 ```
