@@ -23,11 +23,14 @@ impl ValidationOptions<'_> {
     }
 }
 
-fn create_signature_base_string(
+/// Reconstructs the signature base string using the raw signature params from
+/// the Signature-Input header. This ensures the verifier uses the exact same
+/// params line that the signer used, including any additional parameters like
+/// `tag` or `nonce` that the verifier doesn't need to parse individually.
+fn create_signature_base_string_from_raw(
     request: &Request<Option<String>>,
     components: &[&str],
-    created: i64,
-    keyid: &str,
+    raw_params: &str,
 ) -> String {
     let mut parts = Vec::new();
 
@@ -60,30 +63,42 @@ fn create_signature_base_string(
         parts.push(format!("\"{component}\": {value}"));
     }
 
-    let sig_params = format!(
-        "({});created={};keyid=\"{}\"",
-        components.join(" "),
-        created,
-        keyid
-    );
-    parts.push(format!("\"@signature-params\": {sig_params}"));
+    // RFC 9421 Section 2.5: the @signature-params line uses the raw params
+    // string from the Signature-Input header to ensure exact match.
+    parts.push(format!("\"@signature-params\": {raw_params}"));
 
     parts.join("\n")
 }
 
-fn parse_signature_input(signature_input: &str) -> Result<(Vec<&str>, i64, String)> {
+/// Parsed signature input parameters.
+struct SignatureParams<'a> {
+    components: Vec<&'a str>,
+    _created: i64,
+    _keyid: String,
+    /// The raw signature params string (everything after sig1=) to use
+    /// when reconstructing the signature base. This ensures the verifier
+    /// uses the exact same params line that the signer used.
+    raw_params: &'a str,
+}
+
+fn parse_signature_input(signature_input: &str) -> Result<SignatureParams<'_>> {
     let mut components = Vec::new();
     let mut created = None;
     let mut keyid = None;
 
     // Remove the sig1= prefix if present
-    let signature_input = signature_input
+    let raw_params = signature_input
         .strip_prefix("sig1=")
         .unwrap_or(signature_input);
 
-    for part in signature_input.split(';') {
+    for part in raw_params.split(';') {
         if let Some(inner) = part.strip_prefix('(').and_then(|p| p.strip_suffix(')')) {
-            components = inner.split(' ').map(|s| s.trim()).collect();
+            // RFC 9421: component identifiers may be quoted strings.
+            // Strip quotes from each identifier for lookup.
+            components = inner
+                .split(' ')
+                .map(|s| s.trim().trim_matches('"'))
+                .collect();
         } else if let Some(value) = part.strip_prefix("created=") {
             created = value.parse::<i64>().ok();
         } else if let Some(value) = part.strip_prefix("keyid=") {
@@ -96,7 +111,12 @@ fn parse_signature_input(signature_input: &str) -> Result<(Vec<&str>, i64, Strin
     let keyid =
         keyid.ok_or_else(|| HttpSignatureError::Validation("Missing keyid field".to_string()))?;
 
-    Ok((components, created, keyid))
+    Ok(SignatureParams {
+        components,
+        _created: created,
+        _keyid: keyid,
+        raw_params,
+    })
 }
 
 pub fn validate_signature(options: ValidationOptions<'_>) -> Result<()> {
@@ -108,19 +128,31 @@ pub fn validate_signature(options: ValidationOptions<'_>) -> Result<()> {
             HttpSignatureError::Validation("Missing Signature-Input header".to_string())
         })?;
 
-    let (components, created, keyid) = parse_signature_input(signature_input)?;
+    let params = parse_signature_input(signature_input)?;
 
-    let signature = options
+    let raw_signature = options
         .headers
         .get("Signature")
         .and_then(|v| v.to_str().ok())
         .ok_or_else(|| HttpSignatureError::Validation("Missing Signature header".to_string()))?;
 
-    let signature_base =
-        create_signature_base_string(options.request, &components, created, &keyid);
+    // RFC 9421 Section 4.2: Signature header is a Dictionary Structured Field
+    // with byte sequence values in the format sig1=:base64:
+    // Also accept raw base64 for backwards compatibility.
+    let signature_b64 = raw_signature
+        .strip_prefix("sig1=:")
+        .and_then(|s| s.strip_suffix(':'))
+        .or_else(|| raw_signature.strip_prefix("sig1="))
+        .unwrap_or(raw_signature);
+
+    let signature_base = create_signature_base_string_from_raw(
+        options.request,
+        &params.components,
+        params.raw_params,
+    );
 
     let signature_bytes = STANDARD
-        .decode(signature)
+        .decode(signature_b64)
         .map_err(|_| HttpSignatureError::Validation("Base64 decode failed".to_string()))?;
 
     let signature_bytes: [u8; 64] = signature_bytes

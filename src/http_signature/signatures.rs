@@ -67,9 +67,16 @@ fn create_signature_base_string(
         parts.push(format!("\"{component}\": {value}"));
     }
 
+    // RFC 9421 Section 2.5: component identifiers in the signature params
+    // line MUST be quoted strings per the Structured Field sf-string type.
+    let quoted_components: Vec<String> = components
+        .iter()
+        .map(|c| format!("\"{}\"", c))
+        .collect();
+
     let sig_params = format!(
-        "({});created={};keyid=\"{}\"",
-        components.join(" "),
+        "({});created={};keyid=\"{}\";tag=\"gnap\"",
+        quoted_components.join(" "),
         created,
         keyid
     );
@@ -94,11 +101,23 @@ pub fn create_signature_headers(options: SignOptions<'_>) -> Result<SignatureHea
         create_signature_base_string(options.request, &components, created, &options.key_id);
 
     let signature_bytes = options.private_key.sign(signature_base.as_bytes());
-    let signature = STANDARD.encode(signature_bytes.to_bytes());
+    let encoded_signature = STANDARD.encode(signature_bytes.to_bytes());
+
+    // RFC 9421 Section 4.2: Signature header uses Structured Field byte
+    // sequence format with colon delimiters: sig1=:base64:
+    let signature = format!("sig1=:{}:", encoded_signature);
+
+    // RFC 9421 Section 4.1: component identifiers in Signature-Input MUST
+    // be quoted strings. RFC 9635 Section 7.3.1: tag="gnap" is required
+    // for GNAP-bound signatures.
+    let quoted_components: Vec<String> = components
+        .iter()
+        .map(|c| format!("\"{}\"", c))
+        .collect();
 
     let signature_input = format!(
-        "sig1=({});created={};keyid=\"{}\"",
-        components.join(" "),
+        "sig1=({});created={};keyid=\"{}\";tag=\"gnap\"",
+        quoted_components.join(" "),
         created,
         options.key_id
     );
@@ -131,5 +150,81 @@ mod tests {
         let headers = create_signature_headers(options).unwrap();
         assert!(!headers.signature.is_empty());
         assert!(!headers.signature_input.is_empty());
+    }
+
+    #[test]
+    fn test_signature_header_uses_byte_sequence_format() {
+        let mut request = Request::new(None::<String>);
+        *request.method_mut() = Method::GET;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+        request
+            .headers_mut()
+            .insert("Content-Type", "application/json".parse().unwrap());
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let options = SignOptions::new(&request, &signing_key, "test-key".to_string());
+
+        let headers = create_signature_headers(options).unwrap();
+
+        // RFC 9421 Section 4.2: Signature uses byte sequence format sig1=:base64:
+        assert!(
+            headers.signature.starts_with("sig1=:"),
+            "Signature should start with 'sig1=:', got: {}",
+            headers.signature
+        );
+        assert!(
+            headers.signature.ends_with(':'),
+            "Signature should end with ':', got: {}",
+            headers.signature
+        );
+    }
+
+    #[test]
+    fn test_signature_input_has_quoted_components() {
+        let mut request = Request::new(None::<String>);
+        *request.method_mut() = Method::GET;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+        request
+            .headers_mut()
+            .insert("Content-Type", "application/json".parse().unwrap());
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let options = SignOptions::new(&request, &signing_key, "key-1".to_string());
+
+        let headers = create_signature_headers(options).unwrap();
+
+        // RFC 9421 Section 2.5: component identifiers MUST be quoted strings
+        assert!(
+            headers.signature_input.contains("\"@method\""),
+            "Signature-Input should contain quoted component identifiers, got: {}",
+            headers.signature_input
+        );
+        assert!(
+            headers.signature_input.contains("\"@target-uri\""),
+            "Signature-Input should contain quoted component identifiers, got: {}",
+            headers.signature_input
+        );
+    }
+
+    #[test]
+    fn test_signature_input_has_gnap_tag() {
+        let mut request = Request::new(None::<String>);
+        *request.method_mut() = Method::GET;
+        *request.uri_mut() = Uri::from_static("http://example.com");
+        request
+            .headers_mut()
+            .insert("Content-Type", "application/json".parse().unwrap());
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let options = SignOptions::new(&request, &signing_key, "key-1".to_string());
+
+        let headers = create_signature_headers(options).unwrap();
+
+        // RFC 9635 Section 7.3.1: GNAP signatures MUST include tag="gnap"
+        assert!(
+            headers.signature_input.contains("tag=\"gnap\""),
+            "Signature-Input should contain tag=\"gnap\", got: {}",
+            headers.signature_input
+        );
     }
 }
