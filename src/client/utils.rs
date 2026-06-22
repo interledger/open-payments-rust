@@ -96,3 +96,88 @@ pub fn join_url_paths(base_url: &str, path: &str) -> Result<String> {
     let joined_url = url.join(path).map_err(OpClientError::from)?;
     Ok(joined_url.to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── get_resource_server_url ──────────────────────────────────────
+
+    #[test]
+    fn test_resource_server_url_single_segment() {
+        let url = get_resource_server_url("https://ilp.rafiki.money/alice").unwrap();
+        assert_eq!(url, "https://ilp.rafiki.money/");
+    }
+
+    #[test]
+    fn test_resource_server_url_nested_path() {
+        let url =
+            get_resource_server_url("https://ilp.rafiki.money/accounts/alice").unwrap();
+        assert_eq!(url, "https://ilp.rafiki.money/accounts");
+    }
+
+    #[test]
+    fn test_resource_server_url_root_path() {
+        let url = get_resource_server_url("https://ilp.rafiki.money/").unwrap();
+        assert_eq!(url, "https://ilp.rafiki.money/");
+    }
+
+    #[test]
+    fn test_resource_server_url_deeply_nested() {
+        let url =
+            get_resource_server_url("https://example.com/a/b/c/wallet").unwrap();
+        assert_eq!(url, "https://example.com/a/b/c");
+    }
+
+    #[test]
+    fn test_resource_server_url_invalid_url() {
+        let result = get_resource_server_url("not-a-url");
+        assert!(result.is_err());
+    }
+
+    // ── join_url_paths ──────────────────────────────────────────────
+
+    #[test]
+    fn test_join_simple_path() {
+        let url = join_url_paths("https://example.com", "incoming-payments").unwrap();
+        assert_eq!(url, "https://example.com/incoming-payments");
+    }
+
+    #[test]
+    fn test_join_with_trailing_slash() {
+        let url = join_url_paths("https://example.com/", "incoming-payments").unwrap();
+        assert_eq!(url, "https://example.com/incoming-payments");
+    }
+
+    #[test]
+    fn test_join_with_existing_path() {
+        let url =
+            join_url_paths("https://example.com/api/v1", "outgoing-payments").unwrap();
+        assert_eq!(url, "https://example.com/api/v1/outgoing-payments");
+    }
+
+    #[test]
+    fn test_join_empty_path() {
+        let url = join_url_paths("https://example.com/api", "").unwrap();
+        assert_eq!(url, "https://example.com/api");
+    }
+
+    #[test]
+    fn test_join_invalid_base_url() {
+        let result = join_url_paths("not-a-url", "path");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_join_with_nested_path() {
+        let url = join_url_paths(
+            "https://ilp.rafiki.money",
+            "incoming-payments/12345",
+        )
+        .unwrap();
+        assert_eq!(
+            url,
+            "https://ilp.rafiki.money/incoming-payments/12345"
+        );
+    }
+}

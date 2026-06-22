@@ -73,6 +73,7 @@
 //! - [`utils`] - Key management utilities
 //! - [`error`] - Error types and handling
 
+pub(crate) mod base;
 pub mod error;
 pub mod jwk;
 pub mod signatures;

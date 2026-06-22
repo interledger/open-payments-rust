@@ -1,3 +1,4 @@
+use crate::http_signature::base::create_signature_base_string;
 use crate::http_signature::error::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::{Signer, SigningKey};
@@ -28,54 +29,6 @@ impl SignOptions<'_> {
             key_id,
         }
     }
-}
-
-fn create_signature_base_string(
-    request: &Request<Option<String>>,
-    components: &[&str],
-    created: i64,
-    keyid: &str,
-) -> String {
-    let mut parts = Vec::new();
-
-    for component in components {
-        let value = match *component {
-            "@method" => request.method().as_str(),
-            "@target-uri" => &request.uri().to_string(),
-            "authorization" => request
-                .headers()
-                .get("Authorization")
-                .and_then(|v| v.to_str().ok())
-                .unwrap_or(""),
-            "content-digest" => request
-                .headers()
-                .get("Content-Digest")
-                .and_then(|v| v.to_str().ok())
-                .unwrap_or(""),
-            "content-length" => request
-                .headers()
-                .get("Content-Length")
-                .and_then(|v| v.to_str().ok())
-                .unwrap_or(""),
-            "content-type" => request
-                .headers()
-                .get("Content-Type")
-                .and_then(|v| v.to_str().ok())
-                .unwrap_or(""),
-            _ => "",
-        };
-        parts.push(format!("\"{component}\": {value}"));
-    }
-
-    let sig_params = format!(
-        "({});created={};keyid=\"{}\"",
-        components.join(" "),
-        created,
-        keyid
-    );
-    parts.push(format!("\"@signature-params\": {sig_params}"));
-
-    parts.join("\n")
 }
 
 pub fn create_signature_headers(options: SignOptions<'_>) -> Result<SignatureHeaders> {
