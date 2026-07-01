@@ -14,7 +14,7 @@ use crate::{
     },
     quotes::{create_quote, get_quote},
     token::{revoke_access_token, rotate_access_token},
-    wallet_address::{get_keys, get_wallet_address},
+    wallet_address::{get_did_document, get_keys, get_wallet_address},
     Result,
 };
 pub mod authenticated {
@@ -216,8 +216,11 @@ pub mod unauthenticated {
             get_keys(self.client.http_client(), wallet).await
         }
 
-        pub async fn get_did_document(&self, _wallet: &WalletAddress) -> Result<()> {
-            unimplemented!()
+        pub async fn get_did_document(
+            &self,
+            wallet: &WalletAddress,
+        ) -> Result<serde_json::Value> {
+            get_did_document(self.client.http_client(), wallet).await
         }
     }
 

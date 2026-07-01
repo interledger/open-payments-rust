@@ -69,8 +69,7 @@ pub struct AccessToken {
     pub manage: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_in: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub access: Option<Vec<AccessItem>>,
+    pub access: Vec<AccessItem>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

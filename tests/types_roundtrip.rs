@@ -77,21 +77,78 @@ fn outgoing_payment_roundtrip_minimal() {
             asset_code: "USD".into(),
             asset_scale: 2,
         },
-        grant_spent_debit_amount: Amount {
+        grant_spent_debit_amount: Some(Amount {
             value: "0".into(),
             asset_code: "USD".into(),
             asset_scale: 2,
-        },
-        grant_spent_receive_amount: Amount {
+        }),
+        grant_spent_receive_amount: Some(Amount {
             value: "0".into(),
             asset_code: "USD".into(),
             asset_scale: 2,
-        },
+        }),
         metadata: None,
         created_at: Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap(),
         updated_at: None,
     };
     serde_roundtrip(&v);
+}
+
+#[test]
+fn outgoing_payment_without_grant_spent_amounts() {
+    // GET /outgoing-payments/{id} responses do NOT include grant spent amounts.
+    // This test ensures deserialization succeeds when those fields are absent.
+    let json = serde_json::json!({
+        "id": "https://ilp.interledger-test.dev/outgoing-payments/abc",
+        "walletAddress": "https://ilp.interledger-test.dev/alice",
+        "quoteId": "https://ilp.interledger-test.dev/quotes/q1",
+        "failed": false,
+        "receiver": "https://ilp.interledger-test.dev/incoming-payments/123",
+        "receiveAmount": { "value": "10", "assetCode": "USD", "assetScale": 2 },
+        "debitAmount": { "value": "110", "assetCode": "USD", "assetScale": 2 },
+        "sentAmount": { "value": "0", "assetCode": "USD", "assetScale": 2 },
+        "createdAt": "2024-01-01T00:00:00Z"
+    });
+
+    let payment: OutgoingPayment =
+        serde_json::from_value(json).expect("should deserialize without grant spent amounts");
+    assert!(payment.grant_spent_debit_amount.is_none());
+    assert!(payment.grant_spent_receive_amount.is_none());
+}
+
+#[test]
+fn outgoing_payment_with_grant_spent_amounts() {
+    // POST /outgoing-payments responses include grant spent amounts.
+    let json = serde_json::json!({
+        "id": "https://ilp.interledger-test.dev/outgoing-payments/abc",
+        "walletAddress": "https://ilp.interledger-test.dev/alice",
+        "failed": false,
+        "receiver": "https://ilp.interledger-test.dev/incoming-payments/123",
+        "receiveAmount": { "value": "10", "assetCode": "USD", "assetScale": 2 },
+        "debitAmount": { "value": "110", "assetCode": "USD", "assetScale": 2 },
+        "sentAmount": { "value": "0", "assetCode": "USD", "assetScale": 2 },
+        "grantSpentDebitAmount": { "value": "50", "assetCode": "USD", "assetScale": 2 },
+        "grantSpentReceiveAmount": { "value": "5", "assetCode": "USD", "assetScale": 2 },
+        "createdAt": "2024-01-01T00:00:00Z"
+    });
+
+    let payment: OutgoingPayment =
+        serde_json::from_value(json).expect("should deserialize with grant spent amounts");
+    assert!(payment.grant_spent_debit_amount.is_some());
+    assert_eq!(payment.grant_spent_debit_amount.unwrap().value, "50");
+}
+
+#[test]
+fn access_token_requires_access_field() {
+    // The spec requires `access` on access tokens. Verify deserialization
+    // fails when the field is missing.
+    let json = serde_json::json!({
+        "value": "token-value",
+        "manage": "https://auth.example.com/manage"
+    });
+
+    let result = serde_json::from_value::<AccessToken>(json);
+    assert!(result.is_err(), "should fail without required access field");
 }
 
 #[test]
@@ -238,7 +295,7 @@ fn grant_and_continue_response_roundtrip_variants() {
             value: "av".into(),
             manage: "https://auth.interledger-test.dev/manage".into(),
             expires_in: Some(3600),
-            access: None,
+            access: vec![],
         },
         continue_: cont.clone(),
     };
@@ -258,7 +315,7 @@ fn grant_and_continue_response_roundtrip_variants() {
             value: "av".into(),
             manage: "https://auth.interledger-test.dev/manage".into(),
             expires_in: Some(3600),
-            access: None,
+            access: vec![],
         },
         continue_: cont.clone(),
     };
@@ -313,7 +370,7 @@ fn access_token_and_response_roundtrip() {
         value: "token".into(),
         manage: "https://auth.interledger-test.dev/manage".into(),
         expires_in: Some(3600),
-        access: None,
+        access: vec![],
     };
     serde_roundtrip(&tok);
     let resp = AccessTokenResponse { access_token: tok };
@@ -411,7 +468,7 @@ fn incoming_payment_with_methods_roundtrip() {
         ilp_address: "test.bank".into(),
         shared_secret: "s".into(),
     };
-    let base = IncomingPayment {
+    let wrapped = IncomingPaymentWithMethods {
         id: "https://ilp.interledger-test.dev/incoming-payments/123".into(),
         wallet_address: "https://ilp.interledger-test.dev/alice".into(),
         completed: false,
@@ -429,10 +486,6 @@ fn incoming_payment_with_methods_roundtrip() {
         metadata: None,
         created_at: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
         updated_at: None,
-        methods: None,
-    };
-    let wrapped = IncomingPaymentWithMethods {
-        payment: base,
         methods: vec![ilp],
     };
     serde_roundtrip(&wrapped);
