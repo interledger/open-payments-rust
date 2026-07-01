@@ -23,10 +23,7 @@ use crate::OpClientError;
 use crate::Result;
 use base64::engine::general_purpose;
 use base64::Engine;
-use http::{
-    header::{HeaderName, HeaderValue},
-    Method as HttpMethod, Request,
-};
+use http::Request;
 use reqwest::{Client, Method};
 use serde::de::DeserializeOwned;
 use sha2::{Digest, Sha512};
@@ -194,24 +191,17 @@ impl AuthenticatedRequest<'_> {
     /// Returns a tuple of `(signature, signature_input)` strings, or an error if
     /// signature creation fails.
     fn create_signature_headers(&self, req: &reqwest::Request) -> Result<(String, String)> {
-        // Convert to http::Request for signing
+        // Build an http::Request for signing. With reqwest 0.12, the header
+        // and method types are from the same http 1.x crate, so we can use
+        // them directly without manual conversion.
         let mut http_req = Request::new(self.body.clone());
-        *http_req.method_mut() = HttpMethod::from_bytes(req.method().as_str().as_bytes())
-            .map_err(|e| OpClientError::header_parse(format!("Converting HTTP method: {e}")))?;
+        *http_req.method_mut() = req.method().clone();
         *http_req.uri_mut() = req
             .url()
             .as_str()
             .parse()
             .map_err(|e| OpClientError::header_parse(format!("Converting URL to URI: {e}")))?;
-
-        for (key, value) in req.headers() {
-            let header_name = HeaderName::from_bytes(key.as_str().as_bytes())
-                .map_err(|e| OpClientError::header_parse(format!("Converting header name: {e}")))?;
-            let header_value = HeaderValue::from_bytes(value.as_bytes()).map_err(|e| {
-                OpClientError::header_parse(format!("Converting header value: {e}"))
-            })?;
-            http_req.headers_mut().insert(header_name, header_value);
-        }
+        *http_req.headers_mut() = req.headers().clone();
 
         // Create and return signature headers
         let options = SignOptions::new(
