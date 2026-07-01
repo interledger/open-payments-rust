@@ -17,6 +17,8 @@ fn dummy_config(base: &str) -> ClientConfig {
         private_key_path: std::path::PathBuf::from("tests/private.key"),
         jwks_path: None,
         wallet_address_url: format!("{base}/alice"),
+        request_timeout: None,
+        connect_timeout: None,
     }
 }
 
@@ -336,4 +338,60 @@ async fn cancel_grant_204_no_content_succeeds() {
         .cancel(base.join("continue/123").unwrap().as_ref(), Some("token"))
         .await;
     assert!(res.is_ok());
+}
+
+#[tokio::test]
+async fn client_with_timeouts_builds_successfully() {
+    use std::time::Duration;
+
+    let server = MockServer::start().await;
+    let base = Url::parse(&server.uri()).unwrap();
+
+    Mock::given(method("GET"))
+        .and(path(base.join("alice").unwrap().path()))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "id": format!("{}/alice", server.uri()),
+            "publicName": "Alice",
+            "assetCode": "USD",
+            "assetScale": 2,
+            "authServer": format!("{}/auth", server.uri()),
+            "resourceServer": server.uri()
+        })))
+        .mount(&server)
+        .await;
+
+    let tmp = tempdir().unwrap();
+    let config = ClientConfig {
+        key_id: "test-key".into(),
+        private_key_path: tmp.path().join("private.key"),
+        jwks_path: None,
+        wallet_address_url: format!("{}/alice", server.uri()),
+        request_timeout: Some(Duration::from_secs(5)),
+        connect_timeout: Some(Duration::from_secs(2)),
+    };
+
+    // Verify client builds with timeouts
+    let client = AuthenticatedClient::new(config).unwrap();
+
+    // Verify it can still make requests
+    let res: Result<WalletAddress, _> = client
+        .wallet_address()
+        .get(base.join("alice").unwrap().as_ref())
+        .await;
+    assert!(res.is_ok());
+}
+
+#[tokio::test]
+async fn client_default_config_has_timeouts() {
+    let config = ClientConfig::default();
+    assert!(config.request_timeout.is_some());
+    assert!(config.connect_timeout.is_some());
+    assert_eq!(
+        config.request_timeout.unwrap(),
+        std::time::Duration::from_secs(30)
+    );
+    assert_eq!(
+        config.connect_timeout.unwrap(),
+        std::time::Duration::from_secs(10)
+    );
 }

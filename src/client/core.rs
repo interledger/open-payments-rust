@@ -80,7 +80,18 @@ impl AuthenticatedOpenPaymentsClient {
     /// - `validation_errors`: List of validation errors (if applicable)
     /// - `details`: Additional error details (if applicable)
     pub fn new(config: ClientConfig) -> Result<Self> {
-        let http_client = ReqwestClient::new();
+        let mut builder = ReqwestClient::builder();
+
+        if let Some(timeout) = config.request_timeout {
+            builder = builder.timeout(timeout);
+        }
+        if let Some(connect_timeout) = config.connect_timeout {
+            builder = builder.connect_timeout(connect_timeout);
+        }
+
+        let http_client = builder.build().map_err(|e| {
+            OpClientError::other(format!("Failed to build HTTP client: {e}"))
+        })?;
 
         let signing_key = load_or_generate_key(&config.private_key_path).map_err(|e| {
             OpClientError::signature(format!("Failed to load or generate signing key: {e}"))
