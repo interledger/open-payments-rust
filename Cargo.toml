@@ -34,7 +34,6 @@ url = "2.4"
 # Additional dependencies for HTTP signatures
 pkcs8 = "0.10"
 pem = "3.0"
-log = "0.4"
 rand = "0.8"
 
 # Optional dependencies for snippets
