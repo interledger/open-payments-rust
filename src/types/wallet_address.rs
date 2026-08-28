@@ -21,7 +21,7 @@ pub struct JsonWebKeySet {
 pub struct JsonWebKey {
     pub kid: String,
     pub alg: JwkAlgorithm,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "use", skip_serializing_if = "Option::is_none")]
     pub use_: Option<JwkUse>,
     pub kty: JwkKeyType,
     pub crv: JwkCurve,

@@ -58,7 +58,7 @@
 //!         None,
 //!     );
 //!
-//!     let access_token = client.grant().request(&wallet_address.auth_server, &grant_request).await?;
+//!     let access_token = client.grant().request(&wallet_address.auth_server, &grant_request, None).await?;
 //!
 //!     // Example of creating a payment request
 //!     let resource_server = "https://ilp.rafiki.money";

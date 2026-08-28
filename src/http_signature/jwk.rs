@@ -20,7 +20,7 @@ pub enum JwkError {
 pub struct Jwk {
     pub kid: String,
     pub alg: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "use", skip_serializing_if = "Option::is_none")]
     pub use_: Option<String>,
     pub kty: String,
     pub crv: String,

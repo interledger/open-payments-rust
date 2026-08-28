@@ -74,8 +74,10 @@ pub struct OutgoingPayment {
     pub receive_amount: Amount,
     pub debit_amount: Amount,
     pub sent_amount: Amount,
-    pub grant_spent_debit_amount: Amount,
-    pub grant_spent_receive_amount: Amount,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grant_spent_debit_amount: Option<Amount>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grant_spent_receive_amount: Option<Amount>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Value>,
     pub created_at: DateTime<Utc>,
@@ -172,3 +174,13 @@ pub struct PaginatedResponse<T> {
 
 pub type ListIncomingPaymentsResponse = PaginatedResponse<IncomingPayment>;
 pub type ListOutgoingPaymentsResponse = PaginatedResponse<OutgoingPayment>;
+
+/// Spent amounts for the current outgoing-payment grant (`GET /outgoing-payment-grant`).
+///
+/// Both fields are always present in the JSON; values may be `null`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct OutgoingPaymentGrantSpentAmounts {
+    pub spent_receive_amount: Option<Amount>,
+    pub spent_debit_amount: Option<Amount>,
+}

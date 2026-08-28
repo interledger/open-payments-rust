@@ -74,10 +74,10 @@ pub mod wallet_address;
 pub use common::*;
 
 pub use auth::{
-    AccessItem, AccessToken, AccessTokenRequest, AccessTokenResponse, Continue,
+    AccessItem, AccessToken, AccessTokenRequest, AccessTokenResponse, Client, Continue,
     ContinueAccessToken, ContinueRequest, ContinueResponse, GrantRequest, GrantResponse,
     IncomingPaymentAction, InteractFinish, InteractRequest, InteractResponse, LimitsOutgoing,
-    OutgoingPaymentAction, QuoteAction,
+    OutgoingPaymentAction, QuoteAction, Subject, SubjectIdentifier, SubjectIdentifierFormat,
 };
 
 pub use resource::{
@@ -85,8 +85,8 @@ pub use resource::{
     CreateOutgoingPaymentRequest, CreateOutgoingPaymentRequest as OutgoingPaymentRequest,
     CreateQuoteRequest, CreateQuoteRequest as QuoteRequest, IncomingPayment,
     IncomingPaymentWithMethods, ListIncomingPaymentsResponse, ListOutgoingPaymentsResponse,
-    OutgoingPayment, PageInfo, PaginatedResponse, PaymentMethod, PaymentMethodType,
-    PublicIncomingPayment, Quote,
+    OutgoingPayment, OutgoingPaymentGrantSpentAmounts, PageInfo, PaginatedResponse, PaymentMethod,
+    PaymentMethodType, PublicIncomingPayment, Quote,
 };
 
 pub use wallet_address::{

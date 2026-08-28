@@ -1,6 +1,10 @@
 use crate::config::ClientConfig;
 use crate::error::{OpClientError, Result};
 use crate::http_signature::{jwk::Jwk, load_or_generate_key};
+use crate::types::wallet_address::{
+    JsonWebKey, JwkAlgorithm, JwkCurve, JwkKeyType, JwkUse,
+};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use ed25519_dalek::SigningKey;
 use reqwest::{Client, Client as ReqwestClient};
 
@@ -98,6 +102,21 @@ impl AuthenticatedOpenPaymentsClient {
             config,
             signing_key,
         })
+    }
+
+    /// Returns the public [`JsonWebKey`] corresponding to this client's signing key.
+    ///
+    /// Useful for directed-identity grant requests via `grant().request(..., Some(&jwk))`.
+    pub fn public_jwk(&self) -> JsonWebKey {
+        let x = URL_SAFE_NO_PAD.encode(self.signing_key.verifying_key().as_bytes());
+        JsonWebKey {
+            kid: self.config.key_id.clone(),
+            alg: JwkAlgorithm::EdDSA,
+            use_: Some(JwkUse::Signature),
+            kty: JwkKeyType::OKP,
+            crv: JwkCurve::Ed25519,
+            x,
+        }
     }
 }
 

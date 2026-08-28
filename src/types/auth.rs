@@ -1,5 +1,42 @@
 use crate::types::common::{Amount, Interval, Receiver};
+use crate::types::wallet_address::JsonWebKey;
 use serde::{Deserialize, Serialize};
+
+/// Client identification for grant requests.
+///
+/// Open Payments accepts either a wallet address string (backwards compatible),
+/// a `{ "walletAddress": "..." }` object, or a directed-identity `{ "jwk": ... }` object.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum Client {
+    /// Deprecated string form of the client wallet address.
+    WalletAddressUrl(String),
+    /// Object form with a wallet address.
+    WalletAddress {
+        #[serde(rename = "walletAddress")]
+        wallet_address: String,
+    },
+    /// Directed identity — public key embedded in the grant request.
+    Jwk { jwk: JsonWebKey },
+}
+
+/// Subject information requested or returned in a grant.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Subject {
+    pub sub_ids: Vec<SubjectIdentifier>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SubjectIdentifier {
+    pub id: String,
+    pub format: SubjectIdentifierFormat,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum SubjectIdentifierFormat {
+    Uri,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "kebab-case")]
@@ -80,19 +117,43 @@ pub struct AccessTokenResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GrantRequest {
-    pub access_token: AccessTokenRequest,
-    pub(crate) client: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_token: Option<AccessTokenRequest>,
+    pub(crate) client: Client,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interact: Option<InteractRequest>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject: Option<Subject>,
 }
 
 impl GrantRequest {
+    /// Creates a grant request with the given access token request.
+    ///
+    /// The `client` field is filled by [`AuthenticatedResources::grant`] when the
+    /// request is sent. Optionally attach [`Subject`] via [`GrantRequest::with_subject`].
     pub fn new(access_token: AccessTokenRequest, interact: Option<InteractRequest>) -> Self {
         Self {
-            access_token,
-            client: String::new(), // Will be set by the client internally
+            access_token: Some(access_token),
+            client: Client::WalletAddressUrl(String::new()),
             interact,
+            subject: None,
         }
+    }
+
+    /// Creates a grant request that only asks for subject information.
+    pub fn subject_only(subject: Subject, interact: Option<InteractRequest>) -> Self {
+        Self {
+            access_token: None,
+            client: Client::WalletAddressUrl(String::new()),
+            interact,
+            subject: Some(subject),
+        }
+    }
+
+    /// Attaches subject information to this grant request.
+    pub fn with_subject(mut self, subject: Subject) -> Self {
+        self.subject = Some(subject);
+        self
     }
 }
 
@@ -144,6 +205,8 @@ pub enum GrantResponse {
         access_token: AccessToken,
         #[serde(rename = "continue")]
         continue_: Continue,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        subject: Option<Subject>,
     },
 }
 
@@ -159,9 +222,30 @@ pub enum ContinueResponse {
         access_token: AccessToken,
         #[serde(rename = "continue")]
         continue_: Continue,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        subject: Option<Subject>,
+    },
+    WithSubject {
+        subject: Subject,
+        #[serde(rename = "continue")]
+        continue_: Continue,
     },
     Pending {
         #[serde(rename = "continue")]
         continue_: Continue,
     },
+}
+
+impl ContinueResponse {
+    pub fn has_access_token(&self) -> bool {
+        matches!(self, Self::WithToken { .. })
+    }
+
+    pub fn has_subject(&self) -> bool {
+        match self {
+            Self::WithSubject { .. } => true,
+            Self::WithToken { subject, .. } => subject.is_some(),
+            Self::Pending { .. } => false,
+        }
+    }
 }

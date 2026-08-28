@@ -1,16 +1,16 @@
 use crate::client::{AuthenticatedOpenPaymentsClient, BaseClient};
 use crate::types::{
     AccessTokenResponse, ContinueResponse, GrantRequest, GrantResponse, IncomingPayment,
-    IncomingPaymentRequest, JsonWebKeySet, ListIncomingPaymentsResponse,
-    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentRequest, PublicIncomingPayment,
-    Quote, QuoteRequest, WalletAddress,
+    IncomingPaymentRequest, JsonWebKey, JsonWebKeySet, ListIncomingPaymentsResponse,
+    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentGrantSpentAmounts,
+    OutgoingPaymentRequest, PublicIncomingPayment, Quote, QuoteRequest, WalletAddress,
 };
 use crate::{
     grant::{cancel_grant, continue_grant, request_grant},
     payments::{
         complete_incoming_payment, create_incoming_payment, create_outgoing_payment,
-        get_incoming_payment, get_outgoing_payment, get_public_incoming_payment,
-        list_incoming_payments, list_outgoing_payments,
+        get_grant_spent_amounts, get_incoming_payment, get_outgoing_payment,
+        get_public_incoming_payment, list_incoming_payments, list_outgoing_payments,
     },
     quotes::{create_quote, get_quote},
     token::{revoke_access_token, rotate_access_token},
@@ -144,6 +144,17 @@ pub mod authenticated {
         ) -> Result<OutgoingPayment> {
             get_outgoing_payment(self.client, payment_url, access_token).await
         }
+
+        /// Returns spent amounts for the outgoing-payment grant bound to `access_token`.
+        ///
+        /// Maps to `GET /outgoing-payment-grant` on the resource server.
+        pub async fn get_grant_spent_amounts(
+            &self,
+            resource_server_url: &str,
+            access_token: Option<&str>,
+        ) -> Result<OutgoingPaymentGrantSpentAmounts> {
+            get_grant_spent_amounts(self.client, resource_server_url, access_token).await
+        }
     }
 
     pub struct Grant<'a> {
@@ -155,8 +166,18 @@ pub mod authenticated {
             Self { client }
         }
 
-        pub async fn request(&self, auth_url: &str, grant: &GrantRequest) -> Result<GrantResponse> {
-            request_grant(self.client, auth_url, grant).await
+        /// Requests a grant from the authorization server.
+        ///
+        /// By default the client's configured wallet address is sent as `client`.
+        /// Pass `client_override` with a [`JsonWebKey`] to use directed identity instead
+        /// (non-interactive grants only).
+        pub async fn request(
+            &self,
+            auth_url: &str,
+            grant: &GrantRequest,
+            client_override: Option<&JsonWebKey>,
+        ) -> Result<GrantResponse> {
+            request_grant(self.client, auth_url, grant, client_override).await
         }
 
         pub async fn continue_grant(
