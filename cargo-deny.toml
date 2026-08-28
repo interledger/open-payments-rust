@@ -1,23 +1,27 @@
 [advisories]
-vulnerability = "warn"
-unmaintained = "warn"
 yanked = "warn"
-notice = "warn"
-ignore = []
+unmaintained = "all"
+ignore = [
+    # dotenv is used only for local/test env loading.
+    "RUSTSEC-2021-0141",
+    # paste is a transitive proc-macro dependency.
+    "RUSTSEC-2024-0436",
+]
 
 [licenses]
-unlicensed = "warn"
+unused-allowed-license = "allow"
 allow = [
     "Apache-2.0",
     "MIT",
     "BSD-3-Clause",
     "BSD-2-Clause",
     "ISC",
-    "Unicode-DFS-2016"
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "CDLA-Permissive-2.0",
+    "Zlib",
+    "OpenSSL",
 ]
-deny = [
-]
-copyleft = "allow"
 confidence-threshold = 0.92
 
 [bans]
@@ -30,4 +34,3 @@ skip-tree = []
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-

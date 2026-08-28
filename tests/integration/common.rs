@@ -1,7 +1,7 @@
 use open_payments::client::ClientConfig;
+use open_payments::client::UnauthenticatedResources;
 use open_payments::client::{AuthenticatedClient, UnauthenticatedClient};
 use open_payments::client::{OpClientError, Result};
-use open_payments::utils;
 use std::env;
 
 pub struct TestSetup {
@@ -9,6 +9,8 @@ pub struct TestSetup {
     pub unauth_client: UnauthenticatedClient,
     pub resource_server_url: String,
     pub wallet_address: String,
+    pub asset_code: String,
+    pub asset_scale: u8,
     pub test_wallet_email: Option<String>,
     pub test_wallet_password: Option<String>,
 }
@@ -19,7 +21,7 @@ impl TestSetup {
             OpClientError::other(".env file not found in tests/integration directory".to_string())
         })?;
 
-        let wallet_address = env::var("OPEN_PAYMENTS_WALLET_ADDRESS").map_err(|_| {
+        let wallet_address_url = env::var("OPEN_PAYMENTS_WALLET_ADDRESS").map_err(|_| {
             OpClientError::other("OPEN_PAYMENTS_WALLET_ADDRESS not set in .env file".to_string())
         })?;
         let key_id = env::var("OPEN_PAYMENTS_KEY_ID").map_err(|_| {
@@ -30,27 +32,33 @@ impl TestSetup {
         })?;
         let test_wallet_email = env::var("TEST_WALLET_EMAIL").ok();
         let test_wallet_password = env::var("TEST_WALLET_PASSWORD").ok();
-        let resource_server_url = utils::get_resource_server_url(&wallet_address)?;
+
+        let unauth_client = UnauthenticatedClient::new();
+        // Use the wallet address document's resourceServer — do not derive it by
+        // stripping path segments from the wallet URL (those hosts can differ).
+        let wallet = unauth_client
+            .wallet_address()
+            .get(&wallet_address_url)
+            .await?;
 
         let config = ClientConfig {
             key_id,
             private_key_path: private_key_path.into(),
-            wallet_address_url: wallet_address.clone(),
+            wallet_address_url: wallet.id.clone(),
             ..Default::default()
         };
 
         let auth_client = AuthenticatedClient::new(config)?;
-        let unauth_client = UnauthenticatedClient::new();
 
-        let test_setup = Self {
+        Ok(Self {
             auth_client,
             unauth_client,
-            resource_server_url,
-            wallet_address,
+            resource_server_url: wallet.resource_server,
+            wallet_address: wallet.id,
+            asset_code: wallet.asset_code,
+            asset_scale: wallet.asset_scale,
             test_wallet_email,
             test_wallet_password,
-        };
-
-        Ok(test_setup)
+        })
     }
 }

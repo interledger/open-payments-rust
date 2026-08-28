@@ -7,7 +7,6 @@
 //! - **Types**: Complete type definitions for all Open Payments resources and operations
 //! - **HTTP Client**: Async HTTP client with authentication and signature support
 //! - **HTTP Signatures**: Utilities for creating and validating HTTP message signatures
-//! - **Snippets**: Ready-to-use code examples for common operations (optional feature)
 //!
 //! ## Quick Start
 //!
@@ -42,11 +41,6 @@
 //! - [`client`] - HTTP client for making unauthenticated and authenticated requests to Open Payments servers
 //! - [`types`] - Type definitions for all Open Payments resources and operations
 //! - [`http_signature`] - Utilities for HTTP message signature creation and validation
-//! - \[`snippets`\] - Code examples for common operations (requires `snippets` feature)
-//!
-//! ## Cargo Features
-//!
-//! - `snippets` - Enables snippet binaries with example code for common operations
 //!
 //! ## Examples
 //!
@@ -122,8 +116,6 @@
 
 pub mod client;
 pub mod http_signature;
-#[cfg(feature = "snippets")]
-pub mod snippets;
 pub mod types;
 
 // Re-export everything public from client at the crate root

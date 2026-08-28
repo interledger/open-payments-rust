@@ -27,7 +27,6 @@ Additionally, this crate contains several modules:
 
 - [`client`](./src/client) contains a Rust client to make requests via the Open Payments API.
 - [`types`](./src/types) contains Rust types for the API.
-- [`snippets`](./src/snippets) contains examples of Rust client usage for getting accustomed to the Open Payments flow.
 - [`http_signature`](./src/http_signature) provides tools for working with [HTTP Message Signatures](https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures).
 
 ## Dependencies
@@ -77,14 +76,14 @@ cd open-payments-rust
 cargo build
 ```
 
-### Running Examples
+### Running Snippets
 
-See [src/snippets/README.md](./src/snippets/README.md) for details on running code snippets and payment flows. For example, to run a snippet:
+Rust snippets are no longer shipped in this repository. Please use the Open Payments docs to view and run the latest examples:
 
-```sh
-cd src/snippets
-cargo run --features snippets --bin grant-incoming-payment
-```
+- Docs: https://openpayments.dev
+- Rust snippet sources: https://github.com/interledger/open-payments/tree/main/snippets/rust
+
+See [src/snippets/README.md](./src/snippets/README.md) for a short pointer.
 
 ### Useful commands
 
@@ -106,9 +105,6 @@ cargo doc --no-deps
 
 # Generate documentation and open in browser:
 cargo doc --no-deps --open
-
-# Generate documentation with snippets feature:
-cargo doc --features snippets --no-deps
 ```
 
 ## Adding crate as dependency
@@ -117,11 +113,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-open-payments = "0.1.1"
+open-payments = "0.1.2"
 ```
 
-For examples and snippets:
-```toml
-[dependencies]
-open-payments = { version = "0.1.1", features = ["snippets"] }
-```
+For runnable examples, see the [Open Payments Rust snippets](https://github.com/interledger/open-payments/tree/main/snippets/rust).
