@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.2.0] - 2026-08-28
 
 ### Added
 
@@ -21,8 +21,3 @@ All notable changes to this project will be documented in this file.
 - **Breaking:** `OutgoingPayment.grant_spent_debit_amount` / `grant_spent_receive_amount` are now `Option<Amount>`.
 - **Breaking:** `GrantRequest.access_token` is now `Option<AccessTokenRequest>` (still set by `GrantRequest::new`).
 - `JsonWebKey.use_` now serializes as JSON `"use"`.
-
-### Notes for release
-
-- Semver bump to decide at publish time (likely `0.2.0` given breaking API changes).
-- crates.io publish and git tag/push are maintainer-owned steps.
