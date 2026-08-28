@@ -113,7 +113,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-open-payments = "0.1.2"
+open-payments = "0.2.0"
 ```
 
 For runnable examples, see the [Open Payments Rust snippets](https://github.com/interledger/open-payments/tree/main/snippets/rust).

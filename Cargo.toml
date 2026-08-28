@@ -1,6 +1,6 @@
 [package]
 name = "open-payments"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 authors = ["Interledger <tech@interledger.org>"]
 description = "Open Payments Rust SDK library with types, HTTP client and signature utilities"
