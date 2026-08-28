@@ -34,7 +34,7 @@ async fn test_grant_flows() {
     let response = test_setup
         .auth_client
         .grant()
-        .request(&wallet_address.auth_server, &grant_request)
+        .request(&wallet_address.auth_server, &grant_request, None)
         .await
         .expect("Failed to request grant");
 
@@ -42,6 +42,7 @@ async fn test_grant_flows() {
         GrantResponse::WithToken {
             access_token,
             continue_,
+            ..
         } => {
             assert!(!access_token.value.is_empty());
             assert!(!access_token.manage.is_empty());

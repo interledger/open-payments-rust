@@ -2,7 +2,8 @@ use crate::client::{AuthenticatedOpenPaymentsClient, BaseClient};
 use crate::request::{AuthenticatedRequest, UnauthenticatedRequest};
 use crate::types::{
     IncomingPayment, IncomingPaymentRequest, ListIncomingPaymentsResponse,
-    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentRequest, PublicIncomingPayment,
+    ListOutgoingPaymentsResponse, OutgoingPayment, OutgoingPaymentGrantSpentAmounts,
+    OutgoingPaymentRequest, PublicIncomingPayment,
 };
 use crate::utils::join_url_paths;
 use crate::OpClientError;
@@ -128,6 +129,18 @@ pub(crate) async fn list_outgoing_payments(
     }
 
     AuthenticatedRequest::new(client, Method::GET, url.to_string())
+        .build_and_execute(access_token)
+        .await
+}
+
+pub(crate) async fn get_grant_spent_amounts(
+    client: &AuthenticatedOpenPaymentsClient,
+    resource_server_url: &str,
+    access_token: Option<&str>,
+) -> Result<OutgoingPaymentGrantSpentAmounts> {
+    let url = join_url_paths(resource_server_url, "outgoing-payment-grant")?;
+
+    AuthenticatedRequest::new(client, Method::GET, url)
         .build_and_execute(access_token)
         .await
 }

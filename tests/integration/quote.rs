@@ -31,7 +31,7 @@ async fn get_access_token(test_setup: &mut TestSetup) -> String {
     let response = test_setup
         .auth_client
         .grant()
-        .request(&wallet_address.auth_server, &grant_request)
+        .request(&wallet_address.auth_server, &grant_request, None)
         .await
         .expect("Failed to request grant");
 

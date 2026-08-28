@@ -61,7 +61,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
     let ip_grant = test_setup
         .auth_client
         .grant()
-        .request(&wallet_address.auth_server, &ip_grant_request)
+        .request(&wallet_address.auth_server, &ip_grant_request, None)
         .await
         .expect("Failed to request incoming payment grant");
 
@@ -268,7 +268,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
     let quote_grant = test_setup
         .auth_client
         .grant()
-        .request(&wallet_address.auth_server, &quote_grant_req)
+        .request(&wallet_address.auth_server, &quote_grant_req, None)
         .await
         .expect("Request quote grant");
     let quote_token = match quote_grant {
@@ -327,7 +327,7 @@ async fn test_outgoing_payment_flow_with_interaction() {
     let op_grant = test_setup
         .auth_client
         .grant()
-        .request(&wallet_address.auth_server, &op_grant_req)
+        .request(&wallet_address.auth_server, &op_grant_req, None)
         .await
         .expect("Request outgoing payment grant");
 

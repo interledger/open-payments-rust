@@ -77,16 +77,16 @@ fn outgoing_payment_roundtrip_minimal() {
             asset_code: "USD".into(),
             asset_scale: 2,
         },
-        grant_spent_debit_amount: Amount {
+        grant_spent_debit_amount: Some(Amount {
             value: "0".into(),
             asset_code: "USD".into(),
             asset_scale: 2,
-        },
-        grant_spent_receive_amount: Amount {
+        }),
+        grant_spent_receive_amount: Some(Amount {
             value: "0".into(),
             asset_code: "USD".into(),
             asset_scale: 2,
-        },
+        }),
         metadata: None,
         created_at: Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap(),
         updated_at: None,
@@ -241,6 +241,7 @@ fn grant_and_continue_response_roundtrip_variants() {
             access: None,
         },
         continue_: cont.clone(),
+        subject: None,
     };
     serde_roundtrip(&with_token);
 
@@ -261,8 +262,21 @@ fn grant_and_continue_response_roundtrip_variants() {
             access: None,
         },
         continue_: cont.clone(),
+        subject: None,
     };
     serde_roundtrip(&cr_with_token);
+
+    let cr_with_subject = ContinueResponse::WithSubject {
+        subject: Subject {
+            sub_ids: vec![SubjectIdentifier {
+                id: "https://ilp.interledger-test.dev/alice".into(),
+                format: SubjectIdentifierFormat::Uri,
+            }],
+        },
+        continue_: cont.clone(),
+    };
+    serde_roundtrip(&cr_with_subject);
+
     let cr_pending = ContinueResponse::Pending { continue_: cont };
     serde_roundtrip(&cr_pending);
 }
@@ -466,4 +480,105 @@ fn paginated_response_roundtrip() {
         result: vec![item],
     };
     serde_roundtrip(&page);
+}
+
+#[test]
+fn client_identity_serializes_as_string_or_jwk_object() {
+    let url = Client::WalletAddressUrl("https://wallet.example/alice".into());
+    assert_eq!(
+        serde_json::to_value(&url).unwrap(),
+        serde_json::json!("https://wallet.example/alice")
+    );
+
+    let obj = Client::WalletAddress {
+        wallet_address: "https://wallet.example/alice".into(),
+    };
+    assert_eq!(
+        serde_json::to_value(&obj).unwrap(),
+        serde_json::json!({ "walletAddress": "https://wallet.example/alice" })
+    );
+
+    let jwk = JsonWebKey {
+        kid: "kid-1".into(),
+        alg: JwkAlgorithm::EdDSA,
+        use_: Some(JwkUse::Signature),
+        kty: JwkKeyType::OKP,
+        crv: JwkCurve::Ed25519,
+        x: "base64url".into(),
+    };
+    let directed = Client::Jwk { jwk: jwk.clone() };
+    let value = serde_json::to_value(&directed).unwrap();
+    assert_eq!(value["jwk"]["kid"], "kid-1");
+    assert_eq!(value["jwk"]["use"], "sig");
+    serde_roundtrip(&directed);
+}
+
+#[test]
+fn grant_spent_amounts_and_null_fields_roundtrip() {
+    let amounts = OutgoingPaymentGrantSpentAmounts {
+        spent_receive_amount: None,
+        spent_debit_amount: None,
+    };
+    let json = serde_json::to_string(&amounts).unwrap();
+    assert!(json.contains("spentReceiveAmount"));
+    assert!(json.contains("null"));
+    serde_roundtrip(&amounts);
+
+    let with_values = OutgoingPaymentGrantSpentAmounts {
+        spent_receive_amount: Some(Amount {
+            value: "10".into(),
+            asset_code: "USD".into(),
+            asset_scale: 2,
+        }),
+        spent_debit_amount: Some(Amount {
+            value: "11".into(),
+            asset_code: "USD".into(),
+            asset_scale: 2,
+        }),
+    };
+    serde_roundtrip(&with_values);
+
+    let payment = OutgoingPayment {
+        id: "https://ilp.interledger-test.dev/outgoing-payments/abc".into(),
+        wallet_address: "https://ilp.interledger-test.dev/alice".into(),
+        quote_id: None,
+        failed: false,
+        receiver: Receiver("https://ilp.interledger-test.dev/incoming-payments/123".into()),
+        receive_amount: Amount {
+            value: "10".into(),
+            asset_code: "USD".into(),
+            asset_scale: 2,
+        },
+        debit_amount: Amount {
+            value: "11".into(),
+            asset_code: "USD".into(),
+            asset_scale: 2,
+        },
+        sent_amount: Amount {
+            value: "0".into(),
+            asset_code: "USD".into(),
+            asset_scale: 2,
+        },
+        grant_spent_debit_amount: None,
+        grant_spent_receive_amount: None,
+        metadata: None,
+        created_at: Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap(),
+        updated_at: None,
+    };
+    serde_roundtrip(&payment);
+}
+
+#[test]
+fn jwk_use_field_serializes_as_use() {
+    let jwk = JsonWebKey {
+        kid: "kid-1".into(),
+        alg: JwkAlgorithm::EdDSA,
+        use_: Some(JwkUse::Signature),
+        kty: JwkKeyType::OKP,
+        crv: JwkCurve::Ed25519,
+        x: "base64url".into(),
+    };
+    let value = serde_json::to_value(&jwk).unwrap();
+    assert_eq!(value["use"], "sig");
+    assert!(value.get("use_").is_none());
 }
