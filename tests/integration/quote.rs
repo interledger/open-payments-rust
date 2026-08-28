@@ -50,8 +50,8 @@ async fn create_incoming_payment(test_setup: &TestSetup, access_token: &str) -> 
         wallet_address: test_setup.wallet_address.clone(),
         incoming_amount: Some(Amount {
             value: "1000".to_string(),
-            asset_code: "EUR".to_string(),
-            asset_scale: 2,
+            asset_code: test_setup.asset_code.clone(),
+            asset_scale: test_setup.asset_scale,
         }),
         metadata: None,
         expires_at: Some(chrono::Utc::now() + chrono::Duration::hours(1)),
@@ -106,8 +106,8 @@ async fn test_quote_flows() {
         method: PaymentMethodType::Ilp,
         debit_amount: Amount {
             value: "1000".to_string(),
-            asset_code: "EUR".to_string(),
-            asset_scale: 2,
+            asset_code: test_setup.asset_code.clone(),
+            asset_scale: test_setup.asset_scale,
         },
     };
 
@@ -142,8 +142,8 @@ async fn test_quote_flows() {
         method: PaymentMethodType::Ilp,
         receive_amount: Amount {
             value: "1000".to_string(),
-            asset_code: "EUR".to_string(),
-            asset_scale: 2,
+            asset_code: test_setup.asset_code.clone(),
+            asset_scale: test_setup.asset_scale,
         },
     };
 
