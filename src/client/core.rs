@@ -1,9 +1,7 @@
 use crate::config::ClientConfig;
 use crate::error::{OpClientError, Result};
 use crate::http_signature::{jwk::Jwk, load_or_generate_key};
-use crate::types::wallet_address::{
-    JsonWebKey, JwkAlgorithm, JwkCurve, JwkKeyType, JwkUse,
-};
+use crate::types::wallet_address::{JsonWebKey, JwkAlgorithm, JwkCurve, JwkKeyType, JwkUse};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use ed25519_dalek::SigningKey;
 use reqwest::{Client, Client as ReqwestClient};

@@ -1,8 +1,7 @@
 use crate::client::AuthenticatedOpenPaymentsClient;
 use crate::request::AuthenticatedRequest;
 use crate::types::{
-    AccessItem, Client, ContinueRequest, ContinueResponse, GrantRequest, GrantResponse,
-    JsonWebKey,
+    AccessItem, Client, ContinueRequest, ContinueResponse, GrantRequest, GrantResponse, JsonWebKey,
 };
 use crate::OpClientError;
 use crate::Result;
@@ -46,7 +45,11 @@ fn validate_grant_request(grant: &GrantRequest) -> Result<()> {
 
     if let Some(access_token) = &grant.access_token {
         for item in &access_token.access {
-            if let AccessItem::OutgoingPayment { limits: Some(limits), .. } = item {
+            if let AccessItem::OutgoingPayment {
+                limits: Some(limits),
+                ..
+            } = item
+            {
                 if limits.debit_amount.is_some() && limits.receive_amount.is_some() {
                     return Err(Box::new(OpClientError::validation(
                         "Invalid Grant Request",
