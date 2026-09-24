@@ -343,16 +343,37 @@ async fn execute_request<T: DeserializeOwned + 'static>(
     let resp = client.execute(req).await.map_err(OpClientError::from)?;
 
     if !resp.status().is_success() {
-        return Err(Box::new(OpClientError::http(
-            "HTTP request failed".to_string(),
-            Some(
-                resp.status()
-                    .canonical_reason()
-                    .unwrap_or("Unknown")
-                    .to_string(),
-            ),
-            Some(resp.status().as_u16()),
-        )));
+        let status_code = resp.status().as_u16();
+        let status_text = resp
+            .status()
+            .canonical_reason()
+            .unwrap_or("Unknown")
+            .to_string();
+
+        // Attempt to read the response body for error details.
+        // The Open Payments spec defines structured error responses
+        // that contain useful debugging information.
+        let body = resp.text().await.unwrap_or_default();
+        let description = if body.is_empty() {
+            "HTTP request failed".to_string()
+        } else {
+            format!("HTTP request failed: {}", body)
+        };
+
+        let mut error = OpClientError::http(description, Some(status_text), Some(status_code));
+
+        // Try to parse the error body as JSON for structured details
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&body) {
+            if let Some(obj) = parsed.as_object() {
+                let mut details = std::collections::HashMap::new();
+                for (key, value) in obj {
+                    details.insert(key.clone(), value.clone());
+                }
+                error = error.with_details(details);
+            }
+        }
+
+        return Err(Box::new(error));
     }
 
     if resp.status() == reqwest::StatusCode::NO_CONTENT

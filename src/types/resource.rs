@@ -23,11 +23,25 @@ pub struct IncomingPayment {
     pub methods: Option<Vec<PaymentMethod>>,
 }
 
+/// An incoming payment with payment methods always present.
+/// Used for responses from `POST /incoming-payments` where methods
+/// are guaranteed to be included.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct IncomingPaymentWithMethods {
-    #[serde(flatten)]
-    pub payment: IncomingPayment,
+    pub id: String,
+    pub wallet_address: String,
+    pub completed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub incoming_amount: Option<Amount>,
+    pub received_amount: Amount,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<Value>,
+    pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
     pub methods: Vec<PaymentMethod>,
 }
 

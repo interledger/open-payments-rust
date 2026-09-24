@@ -19,3 +19,14 @@ pub(crate) async fn get_keys(client: &Client, wallet: &WalletAddress) -> Result<
         .build_and_execute()
         .await
 }
+
+pub(crate) async fn get_did_document(
+    client: &Client,
+    wallet: &WalletAddress,
+) -> Result<serde_json::Value> {
+    let url = format!("{}/did.json", wallet.id.trim_end_matches('/'));
+
+    UnauthenticatedRequest::new(client, Method::GET, url)
+        .build_and_execute()
+        .await
+}
